@@ -1691,10 +1691,119 @@ void ClickGUI::onRenderImpl() {
 			drawArtworkFallback(dc, artRect, 18.f * uiScale, 0.18f, true);
 		}
 
-		auto drawTextCircleButton = [&](RectF const& rc, std::wstring const& glyph, float fontSize, float alpha = 0.96f) {
+		enum class TransportGlyph {
+			Play,
+			Pause,
+			Prev,
+			Next
+		};
+		auto fillTriangle = [&](Vec2 a, Vec2 b, Vec2 c, d2d::Color const& color) {
+			ComPtr<ID2D1PathGeometry> geometry;
+			if (FAILED(Omoti::getRenderer().getFactory()->CreatePathGeometry(geometry.GetAddressOf())) || !geometry) return;
+
+			ComPtr<ID2D1GeometrySink> sink;
+			if (FAILED(geometry->Open(sink.GetAddressOf())) || !sink) return;
+
+			D2D1_POINT_2F points[2] = {
+				D2D1::Point2F(b.x, b.y),
+				D2D1::Point2F(c.x, c.y)
+			};
+
+			sink->BeginFigure(D2D1::Point2F(a.x, a.y), D2D1_FIGURE_BEGIN_FILLED);
+			sink->AddLines(points, 2);
+			sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+			if (FAILED(sink->Close())) return;
+
+			dc.brush->SetColor(color.get());
+			dc.ctx->FillGeometry(geometry.Get(), dc.brush);
+		};
+		auto drawTransportCircleButton = [&](RectF const& rc, TransportGlyph glyph, float alpha = 0.96f, bool emphasized = false) {
 			bool hovered = shouldSelect(rc, cursorPos);
-			dc.fillRoundedRectangle(rc, d2d::Color(1.f, 1.f, 1.f, hovered ? std::min(1.f, alpha + 0.04f) : alpha), std::min(rc.getWidth(), rc.getHeight()) * 0.5f);
-			dc.drawText(rc, glyph, darkGlyph, FontSelection::PrimarySemilight, fontSize, DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			float radius = std::min(rc.getWidth(), rc.getHeight()) * 0.5f;
+			float fillAlpha = hovered ? std::min(1.f, alpha + 0.04f) : alpha;
+			dc.fillRoundedRectangle(rc, d2d::Color(1.f, 1.f, 1.f, fillAlpha), radius);
+
+			auto iconColor = darkGlyph;
+			Vec2 center = rc.center();
+			float iconScale = emphasized ? 1.0f : 0.92f;
+
+			switch (glyph) {
+			case TransportGlyph::Pause: {
+				float barHeight = rc.getHeight() * 0.34f * iconScale;
+				float barWidth = rc.getWidth() * 0.088f * iconScale;
+				float gapWidth = rc.getWidth() * 0.072f * iconScale;
+				RectF leftBar = {
+					center.x - gapWidth * 0.5f - barWidth,
+					center.y - barHeight * 0.5f,
+					center.x - gapWidth * 0.5f,
+					center.y + barHeight * 0.5f
+				};
+				RectF rightBar = {
+					center.x + gapWidth * 0.5f,
+					center.y - barHeight * 0.5f,
+					center.x + gapWidth * 0.5f + barWidth,
+					center.y + barHeight * 0.5f
+				};
+				dc.fillRoundedRectangle(leftBar, iconColor, barWidth * 0.7f);
+				dc.fillRoundedRectangle(rightBar, iconColor, barWidth * 0.7f);
+				break;
+			}
+			case TransportGlyph::Play: {
+				float triWidth = rc.getWidth() * 0.22f * iconScale;
+				float triHeight = rc.getHeight() * 0.28f * iconScale;
+				float left = center.x - triWidth * 0.44f;
+				fillTriangle(
+					{ left, center.y - triHeight * 0.5f },
+					{ left, center.y + triHeight * 0.5f },
+					{ left + triWidth, center.y },
+					iconColor
+				);
+				break;
+			}
+			case TransportGlyph::Prev: {
+				float barWidth = rc.getWidth() * 0.072f * iconScale;
+				float barHeight = rc.getHeight() * 0.26f * iconScale;
+				RectF bar = {
+					center.x - rc.getWidth() * 0.18f,
+					center.y - barHeight * 0.5f,
+					center.x - rc.getWidth() * 0.18f + barWidth,
+					center.y + barHeight * 0.5f
+				};
+				dc.fillRoundedRectangle(bar, iconColor, barWidth * 0.65f);
+				float triWidth = rc.getWidth() * 0.18f * iconScale;
+				float triHeight = rc.getHeight() * 0.24f * iconScale;
+				float right = center.x + rc.getWidth() * 0.13f;
+				fillTriangle(
+					{ right, center.y - triHeight * 0.5f },
+					{ right, center.y + triHeight * 0.5f },
+					{ right - triWidth, center.y },
+					iconColor
+				);
+				break;
+			}
+			case TransportGlyph::Next: {
+				float barWidth = rc.getWidth() * 0.072f * iconScale;
+				float barHeight = rc.getHeight() * 0.26f * iconScale;
+				RectF bar = {
+					center.x + rc.getWidth() * 0.11f,
+					center.y - barHeight * 0.5f,
+					center.x + rc.getWidth() * 0.11f + barWidth,
+					center.y + barHeight * 0.5f
+				};
+				dc.fillRoundedRectangle(bar, iconColor, barWidth * 0.65f);
+				float triWidth = rc.getWidth() * 0.18f * iconScale;
+				float triHeight = rc.getHeight() * 0.24f * iconScale;
+				float left = center.x - rc.getWidth() * 0.13f;
+				fillTriangle(
+					{ left, center.y - triHeight * 0.5f },
+					{ left, center.y + triHeight * 0.5f },
+					{ left + triWidth, center.y },
+					iconColor
+				);
+				break;
+			}
+			}
+
 			return hovered;
 		};
 		auto drawSideIcon = [&](RectF const& rc, SvgIconKind icon, bool active) {
@@ -1743,9 +1852,9 @@ void ClickGUI::onRenderImpl() {
 		RectF repeatRect = { x, controlY + (playSize - sideSmallSize) * 0.5f, x + sideSmallSize, controlY + (playSize - sideSmallSize) * 0.5f + sideSmallSize };
 
 		bool shuffleHovered = drawSideIcon(shuffleRect, SvgIconKind::Shuffle, gMusicState.shuffle);
-		bool prevHovered = drawTextCircleButton(prevRect, L"\x25C0", 18.f * uiScale, 0.94f);
-		bool playHovered = drawTextCircleButton(playRect, (gMusicState.paused || gMusicState.currentTrack < 0) ? L"\x25B6" : L"II", (gMusicState.paused || gMusicState.currentTrack < 0) ? 28.f * uiScale : 22.f * uiScale, 0.98f);
-		bool nextHovered = drawTextCircleButton(nextRect, L"\x25B6", 18.f * uiScale, 0.94f);
+		bool prevHovered = drawTransportCircleButton(prevRect, TransportGlyph::Prev, 0.94f);
+		bool playHovered = drawTransportCircleButton(playRect, (gMusicState.paused || gMusicState.currentTrack < 0) ? TransportGlyph::Play : TransportGlyph::Pause, 0.98f, true);
+		bool nextHovered = drawTransportCircleButton(nextRect, TransportGlyph::Next, 0.94f);
 		bool repeatHovered = drawSideIcon(repeatRect, SvgIconKind::Repeat, gMusicState.repeat);
 
 		if (justClicked[0] && prevHovered && tryUseMusicActionCooldown(gMusicState.nextControlActionTick, 140)) { playAdjacentTrack(gMusicState, -1); playClickSound(); }
