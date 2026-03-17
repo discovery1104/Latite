@@ -3,10 +3,16 @@
 #include "util/Util.h"
 #include <ctime>
 
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/misc/ClientMessageQueue.h"
+#include <cstdio>
+#include <iostream>
 
-#ifdef LATITE_DEBUG
+namespace {
+    bool gConsoleReady = false;
+}
+
+#ifdef Omoti_DEBUG
 #include <windows.h>
 #include <dbghelp.h>
 #include <psapi.h>
@@ -45,7 +51,7 @@ std::string GenerateStackTrace(CONTEXT* contextArg = nullptr) {
         dllSize = moduleInfo.SizeOfImage;
     }
 
-    std::string regularPdbPath = (std::filesystem::path(searchPath) / "LatiteRewrite.pdb").string();
+    std::string regularPdbPath = (std::filesystem::path(searchPath) / "OmotiRewrite.pdb").string();
     if (!SymLoadModule64(process, NULL, regularPdbPath.c_str(), NULL, baseAddress, dllSize)) {
         Logger::Warn(
             "Could not find or load PDB at {}. Stack trace will not have symbols. System error code: {}",
@@ -137,9 +143,13 @@ void LogExceptionDetails(const std::exception& e) {
 #endif
 
 void Logger::Setup() {
-    auto path = util::GetLatitePath();
+    auto path = util::GetOmotiPath();
     std::filesystem::create_directory(path / "Logs");
     std::filesystem::remove(path / "Logs" / "latest.log");
+}
+
+void Logger::SetupConsole() {
+    gConsoleReady = false;
 }
 
 void Logger::LogInternal(Level level, std::string str) {
@@ -176,9 +186,9 @@ void Logger::LogInternal(Level level, std::string str) {
 
     std::string pref = time.str() + " [" + prefix + "] ";
     std::string mstr = pref + str + "\n";
-    auto path = util::GetLatitePath();
+    auto path = util::GetOmotiPath();
     std::filesystem::path logPath = path / "Logs" / "latest.log";
-    std::string archiveLogFileName = "LatiteRecode-" + oss.str() + ".log";
+    std::string archiveLogFileName = "OmotiRecode-" + oss.str() + ".log";
     std::filesystem::path archiveLogPath = path / "Logs" / archiveLogFileName;
 
     // using 2 file streams here might be bad practice but honestly
@@ -197,9 +207,10 @@ void Logger::LogInternal(Level level, std::string str) {
         ofsArchiveLogPath << mstr;
         ofsArchiveLogPath.close();
     }
+    if (gConsoleReady) {
+        std::cout << mstr;
+        std::cout.flush();
+    }
     OutputDebugStringA(mstr.c_str());
 
-#if LATITE_DEBUG
-    Latite::get().getClientMessageQueue().push(util::Format("&7" + pref + "&r" + str));
-#endif
 }

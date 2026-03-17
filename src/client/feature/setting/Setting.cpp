@@ -21,7 +21,7 @@ StoredColor ColorValue::getMainColor() const {
         return color1;
     }
     auto color1HSV = util::ColorToHSV({ color1.r, color1.g, color1.b, color1.a });
-    color1HSV.h = Latite::get().getRGBHue()*360.f;
+    color1HSV.h = Omoti::get().getRGBHue()*360.f;
     auto col = util::HSVToColor(color1HSV);
     return { col.r, col.g, col.b, color1.a };
 }

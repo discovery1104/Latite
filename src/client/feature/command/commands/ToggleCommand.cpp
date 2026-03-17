@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "ToggleCommand.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/feature/module/ModuleManager.h"
 
 ToggleCommand::ToggleCommand() : Command("toggle", LocalizeString::get("client.commands.toggle.desc"), "$ <module>",
@@ -12,7 +12,7 @@ bool ToggleCommand::execute(std::string const label, std::vector<std::string> ar
 		return false;
 	}
 
-	auto mod = Latite::getModuleManager().find(args[0]);
+	auto mod = Omoti::getModuleManager().find(args[0]);
 	if (mod) {
 		mod->setEnabled(!mod->isEnabled());
 		message(util::StrToWStr(std::format("Toggled module {}", mod->isEnabled() ? "ON" : "OFF")));

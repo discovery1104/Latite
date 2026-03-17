@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "MotionBlur.h"
 #include "client/render/Renderer.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 #include "client/event/events/RendererInitEvent.h"
 
@@ -57,7 +57,7 @@ void MotionBlur::onRenderOverlay(Event& genericEv) {
     RenderOverlayEvent& ev = reinterpret_cast<RenderOverlayEvent&>(genericEv);
 
     ID2D1DeviceContext* ctx = ev.getDeviceContext();
-    Renderer* renderer = &Latite::getRenderer();
+    Renderer* renderer = &Omoti::getRenderer();
     D2D1_SIZE_F screenSize = renderer->getScreenSize();
     D2D1_RECT_F rc = D2D1::RectF(0.f, 0.f, screenSize.width, screenSize.height);
     float opacityValue = std::get<FloatValue>(opacity);

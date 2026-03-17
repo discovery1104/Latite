@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Notifications.h"
 #include <client/render/Renderer.h>
-#include <client/Latite.h>
+#include <client/Omoti.h>
 
 Notifications::Notifications() {
 	Eventing::get().listen<RenderOverlayEvent>(this, (EventListenerFunc)&Notifications::onRender, 10);
@@ -23,7 +23,7 @@ void Notifications::onRender(Event& evG) {
 	float stay = 3000;
 
 	D2DUtil dc;
-	D2D1_SIZE_F ssize = Latite::getRenderer().getScreenSize();
+	D2D1_SIZE_F ssize = Omoti::getRenderer().getScreenSize();
 	d2d::Rect ss = d2d::Rect(0, 0, ssize.width, ssize.height);
 
 	const d2d::Color bgCol = d2d::Color::RGB(7, 7, 7).asAlpha(0.80f);

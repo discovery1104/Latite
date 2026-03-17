@@ -11,7 +11,7 @@ public:
 	virtual bool forceMinecraftRenderer() override { return true; }
 private:
 	void onText(Event&);
-	void onLatiteMessage(Event&);
+	void onOmotiMessage(Event&);
 	void onRenderLayer(Event&);
 
 	void addMessage(std::string const& message);

@@ -73,6 +73,7 @@ private:
 	std::optional<std::wstring> tooltip;
 	std::optional<std::wstring> oldTooltip;
 	std::chrono::system_clock::time_point lastTooltipChange;
+	std::array<bool, 3> polledMouseButtons = {};
 
 	bool closing = false;
 

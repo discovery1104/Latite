@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "LocalizeData.h"
-#include <client/Latite.h>
+#include <client/Omoti.h>
 #include "client/resource/Resource.h"
 #include "client/resource/InitResources.h"
 
@@ -11,7 +11,7 @@ LocalizeData::LocalizeData() {
 
     languages = {
         fallbackLanguage,
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
         std::make_shared<Language>(GET_RESOURCE(lang_ar_AR_json), "ar"),
 #endif
         std::make_shared<Language>(GET_RESOURCE(lang_cs_CZ_json), "cs"),
@@ -56,7 +56,7 @@ bool LocalizeData::parseLangFile(Language& lang, const std::string& content, boo
 }
 
 std::wstring LocalizeData::get(const std::string& id) {
-    auto& lang = *languages.at(Latite::get().getSelectedLanguage());
+    auto& lang = *languages.at(Omoti::get().getSelectedLanguage());
     return tryGetKey(lang, id)
         .value_or(tryGetKey(*fallbackLanguage, id)
             .value_or(util::StrToWStr(id)));

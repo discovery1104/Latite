@@ -2,6 +2,7 @@
 #include "util/DXUtil.h"
 #include <vector>
 #include <shared_mutex>
+#include <filesystem>
 
 class Renderer final {
 public:
@@ -28,7 +29,11 @@ private:
 
 	std::wstring fontFamily = L"Segoe UI";
 	std::wstring fontFamily2 = L"Segoe UI";
+	std::filesystem::path embeddedFontPath = {};
+	int embeddedFontCount = 0;
 	void releaseAllResources(bool indep = true);
+	void tryInstallEmbeddedFont();
+	void uninstallEmbeddedFont();
 
 	void createTextFormats();
 	void releaseTextFormats();
@@ -194,14 +199,9 @@ public:
 	}
 
 	[[nodiscard]] ID2D1Bitmap1* getCopiedBitmap() {
-		auto idx = swapChain4->GetCurrentBackBufferIndex();
-		ID2D1Bitmap1* myBitmap = this->renderTargets[idx];
 		ID2D1Bitmap1* newBitmap = blurBuffers[0];
-
-		D2D1_SIZE_U bitmapSize = myBitmap->GetPixelSize();
-		D2D1_PIXEL_FORMAT pixelFormat = myBitmap->GetPixelFormat();
 		if (!hasCopiedBitmap) {
-			newBitmap->CopyFromBitmap(nullptr, myBitmap, nullptr);
+			newBitmap->CopyFromRenderTarget(nullptr, d2dCtx.Get(), nullptr);
 			hasCopiedBitmap = true;
 		}
 		return newBitmap;
@@ -217,7 +217,7 @@ public:
 
 		HRESULT hr = d2dCtx->CreateBitmap(bitmapSize, nullptr, 0, D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET, pixelFormat), &newBitmap);
 		if (SUCCEEDED(hr)) {
-			newBitmap->CopyFromBitmap(nullptr, myBitmap, nullptr);
+			newBitmap->CopyFromRenderTarget(nullptr, d2dCtx.Get(), nullptr);
 		}
 		return newBitmap;
 	}
@@ -234,27 +234,19 @@ public:
 		if (SUCCEEDED(hr)) {
 			auto pt = D2D1::Point2U((UINT32)rc.left, (UINT32)rc.top);
 			auto urc = D2D1::RectU((UINT32)rc.left, (UINT32)rc.top, (UINT32)rc.right, (UINT32)rc.bottom);
-			newBitmap->CopyFromBitmap(&pt, myBitmap, &urc);
+			newBitmap->CopyFromRenderTarget(&pt, d2dCtx.Get(), &urc);
 		}
 		return newBitmap;
 	}
 
 	[[nodiscard]] void getCopiedBitmap(ID2D1Bitmap1*& bmp, d2d::Rect const& rc) {
-		auto idx = swapChain4->GetCurrentBackBufferIndex();
-		ID2D1Bitmap1* myBitmap = this->renderTargets[idx];
-
-		D2D1_SIZE_U bitmapSize = myBitmap->GetPixelSize();
-		D2D1_PIXEL_FORMAT pixelFormat = myBitmap->GetPixelFormat();
-
 		auto pt = D2D1::Point2U((UINT32)rc.left, (UINT32)rc.top);
 		auto urc = D2D1::RectU((UINT32)rc.left, (UINT32)rc.top, (UINT32)rc.right, (UINT32)rc.bottom);
-		bmp->CopyFromBitmap(&pt, myBitmap, &urc);
+		bmp->CopyFromRenderTarget(&pt, d2dCtx.Get(), &urc);
 	}
 
 	[[nodiscard]] void getCopiedBitmap(ID2D1Bitmap1*& bmp) {
-		auto idx = swapChain4->GetCurrentBackBufferIndex();
-		ID2D1Bitmap1* myBitmap = this->renderTargets[idx];
-		bmp->CopyFromBitmap(nullptr, myBitmap, nullptr);
+		bmp->CopyFromRenderTarget(nullptr, d2dCtx.Get(), nullptr);
 	}
 
 	[[nodiscard]] ID2D1Effect*& getShadowEffect() {

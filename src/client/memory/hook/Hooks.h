@@ -12,19 +12,13 @@
 #include "hooks/PacketHooks.h"
 #include "hooks/PlayerHooks.h"
 
-class LatiteHooks final : public StaticManager<HookGroup,
+class OmotiHooks final : public StaticManager<HookGroup,
 	GenericHooks,
-	LevelRendererHooks,
-	OptionHooks,
 	DXHooks,
-	PlayerHooks,
-	MinecraftGameHooks,
-	RenderControllerHooks,
-	ScreenViewHooks,
-	PacketHooks> {
+	MinecraftGameHooks> {
 public:
-	LatiteHooks();
-	~LatiteHooks();
+	OmotiHooks();
+	~OmotiHooks();
 
 	void enable();
 	void disable();

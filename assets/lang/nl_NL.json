@@ -1,7 +1,7 @@
 {
   "name": "Dutch (NL)",
   "translations": {
-    "client.intro.welcome": "Welkom bij Latite Client!",
+    "client.intro.welcome": "Welkom bij Omoti Client!",
     "client.intro.menubutton": "Druk op de {} toets in een wereld of server om het mod menu te openen.",
     "client.settings.menuKey.name": "Menu Toets",
     "client.settings.ejectKey.name": "Ontkoppel Toets",
@@ -34,7 +34,7 @@
     "client.settings.centerCursor.desc": "Draadkruis centreren bij het openen van het menu.",
     "client.settings.snapLines.desc": "Kliklijnen om modules te helpen uitlijnen",
     "client.settings.detectLanguage.name": "Detecteer taal",
-    "client.settings.detectLanguage.desc": "Wissel de taal van Latite Client automatisch op basis van de systeemtaal.",
+    "client.settings.detectLanguage.desc": "Wissel de taal van Omoti Client automatisch op basis van de systeemtaal.",
     "client.settings.mcRendererFont.default.name": "Standaard",
     "client.settings.mcRendererFont.notoSans.name": "Noto Sans",
     "client.settings.mcRendererFont.default.desc": "Het standaard gebruikersinterface lettertype (Mojangles is de Standaard)",
@@ -431,7 +431,7 @@
     "client.module.autoGG.customMessage.desc": "Het aangepaste te sturen bericht",
     "client.commands.help.desc": "Toons alle commando's en beschrijvingen.",
     "client.commands.eject.ejectMsg.name": "Ontkoppeld uit het spel.",
-    "client.commands.eject.desc": "Ontkoppelt Latite van het spel.",
+    "client.commands.eject.desc": "Ontkoppelt Omoti van het spel.",
     "client.commands.setPrefix.success.name": "Het commando voorvoegsel is nu &7'{}'",
     "client.commands.setPrefix.desc": "Verander het commando voorvoegsel",
     "client.commands.toggle.msg.unknownModule.name": "Onbekende module {}",

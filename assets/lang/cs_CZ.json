@@ -1,7 +1,7 @@
 {
   "name": "Čeština (CZ)",
   "translations": {
-    "client.intro.welcome": "Vítá tě Latite Client!",
+    "client.intro.welcome": "Vítá tě Omoti Client!",
     "client.intro.menubutton": "Pro otevření menu stistkni {} ve světě nebo na serveru.",
     "client.settings.menuKey.name": "Klávesa Menu",
     "client.settings.ejectKey.name": "Klávesa ukončení",
@@ -34,7 +34,7 @@
     "client.settings.centerCursor.desc": "Kurzor bude po otevření menu vycentrován.",
     "client.settings.snapLines.desc": "Pomocné čáry, které ti pomohou zarovnat moduly",
     "client.settings.detectLanguage.name": "Detekce jazyka",
-    "client.settings.detectLanguage.desc": "Automaticky přepínat jazyk Latite Clientu podle systémového nastavení.",
+    "client.settings.detectLanguage.desc": "Automaticky přepínat jazyk Omoti Clientu podle systémového nastavení.",
     "client.settings.mcRendererFont.default.name": "Výchozí",
     "client.settings.mcRendererFont.notoSans.name": "Noto Sans",
     "client.settings.mcRendererFont.default.desc": "Základní font uživatelského rozhraní (Mojangles)",
@@ -430,8 +430,8 @@
     "client.module.autoGG.customMessage.name": "Zpráva",
     "client.module.autoGG.customMessage.desc": "Vlastní zpráva k odeslání",
     "client.commands.help.desc": "Zobrazí všechny příkazy včetně jejich použití.",
-    "client.commands.eject.ejectMsg.name": "Latite Client byl odpojen od této herní relace.",
-    "client.commands.eject.desc": "Odpojí Latite Client ze hry pro tuto herní relaci.",
+    "client.commands.eject.ejectMsg.name": "Omoti Client byl odpojen od této herní relace.",
+    "client.commands.eject.desc": "Odpojí Omoti Client ze hry pro tuto herní relaci.",
     "client.commands.setPrefix.success.name": "Předpona příkazu byla nastavena na &7'{}'",
     "client.commands.setPrefix.desc": "Nastavit předponu příkazu",
     "client.commands.toggle.msg.unknownModule.name": "Neznámý modul {}",

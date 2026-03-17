@@ -6,7 +6,7 @@
 
 #include "client/event/Eventing.h"
 #include "client/event/events/DrawHUDModulesEvent.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/config/ConfigManager.h"
 #include "client/feature/module/ModuleManager.h"
 #include "client/feature/module/HUDModule.h"
@@ -20,46 +20,46 @@
 
 
 HUDEditor::HUDEditor() : dragMod(nullptr) {
-	this->key = Latite::get().getMenuKey();
+	this->key = Omoti::get().getMenuKey();
 
 	Eventing::get().listen<RenderOverlayEvent>(this, (EventListenerFunc)&HUDEditor::onRender, 2, true);
 	Eventing::get().listen<RenderLayerEvent>(this, (EventListenerFunc)&HUDEditor::onRenderLayer, 1, true);
-	Eventing::get().listen<ClickEvent>(this, (EventListenerFunc)&HUDEditor::onClick, 4);
-	Eventing::get().listen<KeyUpdateEvent>(this, (EventListenerFunc)&HUDEditor::onKey);
+	Eventing::get().listen<ClickEvent>(this, (EventListenerFunc)&HUDEditor::onClick, 150);
+	Eventing::get().listen<KeyUpdateEvent>(this, (EventListenerFunc)&HUDEditor::onKey, 150);
 }
 
 void HUDEditor::onRender(Event& ev) {
 	D2DUtil dc;
-	bool mcRenderer = Latite::get().useMinecraftRenderer();
+	bool mcRenderer = Omoti::get().useMinecraftRenderer();
 
 	std::vector<d2d::Rect> maskRects = {};
 
 	if (isActive()) {
-		Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+		Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 			if (mod->isHud() && mod->isEnabled()) {
 				auto rMod = reinterpret_cast<HUDModule*>(mod.get());
-				if (Latite::get().getMenuBlur() && (mcRenderer || rMod->forceMinecraftRenderer())) maskRects.push_back(rMod->getRect());
+				if (Omoti::get().getMenuBlur() && (mcRenderer || rMod->forceMinecraftRenderer())) maskRects.push_back(rMod->getRect());
 				if (rMod->isActive()) return;
 				addLayer(rMod->getRect());
 			}
 			});
 
 
-		auto alpha = Latite::getRenderer().getDeltaTime() / 10.f;
+		auto alpha = Omoti::getRenderer().getDeltaTime() / 10.f;
 		anim = std::lerp(anim, 1.f, alpha);
 
-		float toBlur = Latite::get().getMenuBlur().value_or(0.f);
-		if (Latite::get().getMenuBlur()) dc.drawGaussianBlur(toBlur * anim);
+		float toBlur = Omoti::get().getMenuBlur().value_or(0.f);
+		if (Omoti::get().getMenuBlur()) dc.drawGaussianBlur(toBlur * anim);
 		// cut out stuff, for movable scoreboard and paperdoll in future
 
 		for (auto& control : maskRects) {
-			auto bmp = Latite::getRenderer().getCopiedBitmap(control);
+			auto bmp = Omoti::getRenderer().getCopiedBitmap(control);
 
 			dc.ctx->DrawBitmap(bmp);
 
 			bmp->Release();
 		}
-		Latite::getRenderer().getDeviceContext()->Flush();
+		Omoti::getRenderer().getDeviceContext()->Flush();
 
 		auto& cursorPos = SDK::ClientInstance::get()->cursorPos;
 
@@ -68,7 +68,7 @@ void HUDEditor::onRender(Event& ev) {
 			float buttonWidth = 200.f;
 			float buttonHeight = 60.f;
 
-			auto ss = Latite::getRenderer().getScreenSize();
+			auto ss = Omoti::getRenderer().getScreenSize();
 
 			d2d::Rect ssRec = { 0.f, 0.f, ss.width, ss.height };
 			Vec2 btnPos = ssRec.center({ 200.f, 60.f });
@@ -80,8 +80,8 @@ void HUDEditor::onRender(Event& ev) {
 
 			bool state = shouldSelect(btnRect, cursorPos);
 			if (state && justClicked[0]) {
-				Latite::getScreenManager().exitCurrentScreen();
-				Latite::getScreenManager().showScreen<ClickGUI>();
+				Omoti::getScreenManager().exitCurrentScreen();
+				Omoti::getScreenManager().showScreen<ClickGUI>();
 				playClickSound();
 			}
 
@@ -99,7 +99,7 @@ void HUDEditor::onRender(Event& ev) {
 	doSnapping(dragOffset);
 	if (!mcRenderer) {
 		renderModules(nullptr);
-		keepModulesInBounds(Vec2(Latite::getRenderer().getScreenSize().width, Latite::getRenderer().getScreenSize().height));
+		keepModulesInBounds(Vec2(Omoti::getRenderer().getScreenSize().width, Omoti::getRenderer().getScreenSize().height));
 	}
 	else {
 		keepModulesInBounds(SDK::ClientInstance::get()->getGuiData()->screenSize);
@@ -114,7 +114,7 @@ void HUDEditor::onClick(Event& evGeneric) {
 		ev.setCancelled();
 	}
 
-	Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+	Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 		if (!mod->isHud()) return;
 		auto hudMod = reinterpret_cast<HUDModule*>(mod.get());
 
@@ -131,9 +131,9 @@ void HUDEditor::onClick(Event& evGeneric) {
 			hudMod->setEnabled(false);
 		}
 		else if (ev.getMouseButton() == 2) {
-			Latite::getScreenManager().get<ClickGUI>().jumpToModule(hudMod->name());
+			Omoti::getScreenManager().get<ClickGUI>().jumpToModule(hudMod->name());
 			close();
-			Latite::getScreenManager().showScreen<ClickGUI>(true);
+			Omoti::getScreenManager().showScreen<ClickGUI>(true);
 		}
 		else {
 			ev.setCancelled(false);
@@ -143,12 +143,12 @@ void HUDEditor::onClick(Event& evGeneric) {
 
 void HUDEditor::onRenderLayer(Event& evGeneric) {
 	auto& ev = static_cast<RenderLayerEvent&>(evGeneric);
-	bool mcRenderer = Latite::get().useMinecraftRenderer();
+	bool mcRenderer = Omoti::get().useMinecraftRenderer();
 
 	if (ev.getScreenView()->visualTree->rootControl->name == "debug_screen") {
 		if (isActive() || SDK::ClientInstance::get()->minecraftGame->isCursorGrabbed()) {
-			Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
-				if (mod->isHud() && mod->isEnabled() && reinterpret_cast<HUDModule*>(mod.get())->isActive() && Latite::getRenderer().getDeviceContext()) {
+			Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+				if (mod->isHud() && mod->isEnabled() && reinterpret_cast<HUDModule*>(mod.get())->isActive() && Omoti::getRenderer().getDeviceContext()) {
 					auto rMod = reinterpret_cast<HUDModule*>(mod.get());
 
 					if (rMod->getCategory() == Module::SCRIPT) {
@@ -178,7 +178,7 @@ void HUDEditor::onRenderLayer(Event& evGeneric) {
 			return;
 		}
 
-		MCDrawUtil dc = { ev.getUIRenderContext(), Latite::get().getFont() };
+		MCDrawUtil dc = { ev.getUIRenderContext(), Omoti::get().getFont() };
 
 		auto& ss = SDK::ClientInstance::get()->getGuiData()->screenSize;
 		//if (isActive()) dc.fillRectangle({ 0.f, 0.f, ss.x, ss.y }, { 0.4f, 0.4f, 0.4f, 0.4f * this->anim });
@@ -189,7 +189,7 @@ void HUDEditor::onRenderLayer(Event& evGeneric) {
 	}
 
 	if (!SDK::ClientInstance::get()->minecraftGame->isCursorGrabbed()) {
-		Latite::getModuleManager().forEach([](std::shared_ptr<Module> mod) {
+		Omoti::getModuleManager().forEach([](std::shared_ptr<Module> mod) {
 			if (mod->isEnabled() && mod->shouldHoldToToggle()) {
 				mod->setEnabled(false);
 			}
@@ -272,7 +272,7 @@ void HUDEditor::renderModules(SDK::MinecraftUIRenderContext* ctx, bool forceMine
 	}
 	else {
 		if (*lastScreenSize != guiData->screenSize) {
-			Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+			Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 				if (mod->isHud()) {
 					HUDModule* rMod = reinterpret_cast<HUDModule*>(mod.get());
 					Vec2 oPos = rMod->getRect().getPos();
@@ -287,15 +287,15 @@ void HUDEditor::renderModules(SDK::MinecraftUIRenderContext* ctx, bool forceMine
 	lastScreenSize = guiData->screenSize;
 
 	if (isActive() || SDK::ClientInstance::get()->minecraftGame->isCursorGrabbed()) {
-		Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+		Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 
-			if (!Latite::get().useMinecraftRenderer()) {
-				if ((forceMinecraftOnly || Latite::get().useMinecraftRenderer()) ^ static_cast<Module*>(mod.get())->forceMinecraftRenderer()) return;
+			if (!Omoti::get().useMinecraftRenderer()) {
+				if ((forceMinecraftOnly || Omoti::get().useMinecraftRenderer()) ^ static_cast<Module*>(mod.get())->forceMinecraftRenderer()) return;
 			}
 			if (mod->isHud() && mod->isEnabled() && reinterpret_cast<HUDModule*>(mod.get())->isActive()) {
 				auto hudModule = static_cast<HUDModule*>(mod.get());
 				renderModule(hudModule, ctx);
-				hudModule->storePos(ctx ? SDK::ClientInstance::get()->getGuiData()->screenSize : Vec2(Latite::getRenderer().getScreenSize().width, Latite::getRenderer().getScreenSize().height));
+				hudModule->storePos(ctx ? SDK::ClientInstance::get()->getGuiData()->screenSize : Vec2(Omoti::getRenderer().getScreenSize().width, Omoti::getRenderer().getScreenSize().height));
 			}
 			});
 	}
@@ -315,7 +315,7 @@ void HUDEditor::renderModule(HUDModule* mod, SDK::MinecraftUIRenderContext* ctx)
 		dc.ctx->SetTransform(oTrans);
 	}
 	else {
-		MCDrawUtil dc{ ctx, Latite::get().getFont() };
+		MCDrawUtil dc{ ctx, Omoti::get().getFont() };
 		if (isActive()) mod->renderFrame(dc);
 		dc.setImmediate(false);
 		dc.flush();
@@ -328,7 +328,7 @@ void HUDEditor::renderModule(HUDModule* mod, SDK::MinecraftUIRenderContext* ctx)
 	if (isActive()) {
 
 		if (ctx) {
-			MCDrawUtil dc{ ctx, Latite::get().getFont() };
+			MCDrawUtil dc{ ctx, Omoti::get().getFont() };
 			if (hovering) mod->renderSelected(dc);
 			mod->renderPost(dc);
 			dc.flush();
@@ -359,7 +359,7 @@ void HUDEditor::doDragging() {
 		// Find a dragging element
 		if (isDown) {
 			bool doDrag = true;
-			Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+			Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 				if (doDrag) {
 					if (mod->isEnabled() && mod->isHud()) {
 						HUDModule* rMod = static_cast<HUDModule*>(mod.get());
@@ -379,7 +379,7 @@ void HUDEditor::doDragging() {
 }
 
 void HUDEditor::doSnapping(Vec2 const&) {
-	auto ssx = Latite::getRenderer().getScreenSize();
+	auto ssx = Omoti::getRenderer().getScreenSize();
 	Vec2 ss = { ssx.width, ssx.height };
 	auto& mousePos = SDK::ClientInstance::get()->cursorPos;
 
@@ -398,7 +398,7 @@ void HUDEditor::doSnapping(Vec2 const&) {
 		if (rec.bottom > 0.f && rec.bottom < ss.y) snapLinesControlsY.push_back(rec.bottom);
 	}
 
-	if (isActive() && dragMod && Latite::get().getDoSnapLines()) {
+	if (isActive() && dragMod && Omoti::get().getDoSnapLines()) {
 		auto pos = mousePos - dragOffset;
 
 		float snapRange = 10.f;
@@ -549,7 +549,7 @@ void HUDEditor::doSnapping(Vec2 const&) {
 	}
 	else {
 		// Keep modules in their snapped state
-		Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+		Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 			if (mod->isHud() && mod->isEnabled()) {
 				auto rMod = static_cast<HUDModule*>(mod.get());
 				if (!rMod->isActive()) return;
@@ -630,7 +630,7 @@ void HUDEditor::doSnapping(Vec2 const&) {
 }
 
 void HUDEditor::keepModulesInBounds(Vec2 const& ss) {
-	Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+	Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 		if (mod->isEnabled() && mod->isHud()) {
 			HUDModule* rMod = static_cast<HUDModule*>(mod.get());
 			if (!rMod->isActive()) return false;
@@ -679,5 +679,5 @@ void HUDEditor::onEnable(bool ignoreAnims) {
 
 void HUDEditor::onDisable() {
 	SDK::ClientInstance::get()->grabCursor();
-	Latite::getConfigManager().saveCurrentConfig();
+	Omoti::getConfigManager().saveCurrentConfig();
 }

@@ -12,7 +12,7 @@ public:
 	Timings(Timings&&) = delete;
 	int getPerSecond(std::vector<std::chrono::steady_clock::time_point>& list);
 
-	// TODO: move code from GameHooks.cpp and Latite.cpp into these
+	// TODO: move code from GameHooks.cpp and Omoti.cpp into these
 	void update();
 	void onClick(int mb, bool isDown);
 

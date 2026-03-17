@@ -26,7 +26,7 @@ namespace {
 			dc.drawLine({ x1, myY, z1 }, { x2, myY, z2 }, static_cast<int>(myY) % 16 == 0 ? Color(0.f, 0.f, 1.f, opacity) : Color(1.f, 1.f, 0.f, opacity));
 		}
 
-		if (!LatiteMath::aequals(x1, x2)) {
+		if (!OmotiMath::aequals(x1, x2)) {
 			// X mode
 			// render 8 horizontal
 			float myDiff = (x2 - x1) / 8.f;

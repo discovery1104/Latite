@@ -1,24 +1,25 @@
 #include "pch.h"
 #include "Screen.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/event/Eventing.h"
 #include "ScreenManager.h"
 #include "client/event/events/ClickEvent.h"
 #include "client/event/events/RenderOverlayEvent.h"
 #include "client/event/events/UpdateEvent.h"
 #include "mc/common/client/game/ClientInstance.h"
+#include "mc/common/client/game/GameCore.h"
 
 Screen::Screen() {
 	/*
-	arrow = LoadCursorW(Latite::get().dllInst, IDC_ARROW);
-	hand = LoadCursorW(Latite::get().dllInst, IDC_HAND);
-	ibeam = LoadCursorW(Latite::get().dllInst, IDC_IBEAM);
+	arrow = LoadCursorW(Omoti::get().dllInst, IDC_ARROW);
+	hand = LoadCursorW(Omoti::get().dllInst, IDC_HAND);
+	ibeam = LoadCursorW(Omoti::get().dllInst, IDC_IBEAM);
 	*/
 	// ^ this doesnt work with resources...
 
 	Eventing::get().listen<UpdateEvent>(this, (EventListenerFunc)&Screen::onUpdate, 0);
 	Eventing::get().listen<RenderOverlayEvent>(this, (EventListenerFunc)&Screen::onRenderOverlay, 0, true);
-	Eventing::get().listen<ClickEvent>(this, (EventListenerFunc)&Screen::onClick, 3, true);
+	Eventing::get().listen<ClickEvent>(this, (EventListenerFunc)&Screen::onClick, 100, true);
 }
 
 void Screen::onUpdate(Event& ev) {
@@ -35,13 +36,52 @@ void Screen::onUpdate(Event& ev) {
 		break;
 	}
 	*/
+	if (!isActive()) return;
+
 	SDK::ClientInstance::get()->releaseCursor();
+
+	SDK::GameCore* gameCore = SDK::GameCore::get();
+	if (!gameCore || !gameCore->hwnd) return;
+	HWND fg = GetForegroundWindow();
+	if (fg && fg != gameCore->hwnd && !IsChild(gameCore->hwnd, fg) && !IsChild(fg, gameCore->hwnd)) {
+		polledMouseButtons = { false, false, false };
+		mouseButtons = { false, false, false };
+		activeMouseButtons = { false, false, false };
+		return;
+	}
+
+	if (auto clientInstance = SDK::ClientInstance::get()) {
+		POINT point{};
+		if (GetCursorPos(&point) && ScreenToClient(gameCore->hwnd, &point)) {
+			clientInstance->cursorPos = Vec2(static_cast<float>(point.x), static_cast<float>(point.y));
+		}
+	}
+
+	constexpr std::array<int, 3> kMouseVks = { VK_LBUTTON, VK_RBUTTON, VK_MBUTTON };
+	for (size_t i = 0; i < kMouseVks.size(); i++) {
+		const bool isDown = (GetAsyncKeyState(kMouseVks[i]) & 0x8000) != 0;
+		if (polledMouseButtons[i] == isDown) continue;
+
+		polledMouseButtons[i] = isDown;
+		mouseButtons[i] = isDown;
+		if (isDown) {
+			activeMouseButtons[i] = true;
+		}
+	}
+
+	MSG msg{};
+	while (PeekMessageW(&msg, gameCore->hwnd, WM_MOUSEWHEEL, WM_MOUSEWHEEL, PM_REMOVE)) {
+		const auto delta = std::clamp(static_cast<int>(GET_WHEEL_DELTA_WPARAM(msg.wParam)), -127, 127);
+		ClickEvent wheelEvent{ 4, static_cast<char>(delta) };
+		Eventing::get().dispatch(wheelEvent);
+	}
 }
 
 void Screen::close() {
 	this->activeMouseButtons = { false, false, false };
 	this->mouseButtons = { false, false, false };
-	Latite::getScreenManager().exitCurrentScreen();
+	this->polledMouseButtons = { false, false, false };
+	Omoti::getScreenManager().exitCurrentScreen();
 }
 
 void Screen::playClickSound() {
@@ -61,9 +101,8 @@ void Screen::onClick(Event& evGeneric) {
 					this->activeMouseButtons[ev.getMouseButton() - 1] = ev.isDown();
 				this->mouseButtons[ev.getMouseButton() - 1] = ev.isDown();
 			}
-			if (isActive()) ev.setCancelled(true);
 		}
-
+		if (isActive()) ev.setCancelled(true);
 	}
 }
 

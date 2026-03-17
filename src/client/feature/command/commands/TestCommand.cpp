@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "TestCommand.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "mc/common/client/gui/controls/UIControl.h"
 #include "mc/common/client/gui/controls/VisualTree.h"
 #include <mc/common/nbt/CompoundTag.h>
@@ -31,7 +31,7 @@ bool TestCommand::execute(std::string const label, std::vector<std::string> args
 	dialog.Commands().Append(noCommand);
 #endif
 #if 0
-	//Latite::get().fetchLatiteUsers();
+	//Omoti::get().fetchOmotiUsers();
 	if (!bossbar) {
 		message("Cannot find bossbar", false);
 		return true;

@@ -2,7 +2,7 @@
 #include "Keystrokes.h"
 #include "client/input/Keyboard.h"
 #include <array>
-#include <client/Latite.h>
+#include <client/Omoti.h>
 
 Keystrokes::Keystrokes() : HUDModule("Keystrokes", LocalizeString::get("client.hudmodule.keystrokes.name"),
                                      LocalizeString::get("client.hudmodule.keystrokes.desc"), HUD) {
@@ -148,7 +148,7 @@ void Keystrokes::render(DrawUtil& dc, bool, bool inEditor) {
 			std::wstring str = L"LMB";
 
 			if (std::get<BoolValue>(cps)) {
-				str += L"\n" + std::to_wstring(Latite::get().getTimings().getCPSL()) + L" CPS";
+				str += L"\n" + std::to_wstring(Omoti::get().getTimings().getCPSL()) + L" CPS";
 			}
 
 			dc.drawText(mb, str, btn.textCol, Renderer::FontSelection::SecondaryLight, std::get<FloatValue>(textSize), DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -165,7 +165,7 @@ void Keystrokes::render(DrawUtil& dc, bool, bool inEditor) {
 			std::wstring str = L"RMB";
 
 			if (std::get<BoolValue>(cps)) {
-				str += L"\n" + std::to_wstring(Latite::get().getTimings().getCPSR()) + L" CPS";
+				str += L"\n" + std::to_wstring(Omoti::get().getTimings().getCPSR()) + L" CPS";
 			}
 
 			dc.drawText(mb, str, btn.textCol, Renderer::FontSelection::SecondaryLight, std::get<FloatValue>(textSize), DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -203,8 +203,8 @@ void Keystrokes::render(DrawUtil& dc, bool, bool inEditor) {
 	int cpsR = 0;
 
 	if (!inEditor) {
-		cpsL = Latite::get().getTimings().getCPSL();
-		cpsR = Latite::get().getTimings().getCPSR();
+		cpsL = Omoti::get().getTimings().getCPSL();
+		cpsR = Omoti::get().getTimings().getCPSR();
 	}
 
 	this->rect.right = rect.left + pos.x;
@@ -213,11 +213,11 @@ void Keystrokes::render(DrawUtil& dc, bool, bool inEditor) {
 
 Keystrokes::Keystroke::Keystroke(std::string const& inputMapping, GetInputFunc getInput) : Stroke(getInput)
 	, mapping(inputMapping) {
-	vKey = Latite::getKeyboard().getMappedKey(inputMapping);
+	vKey = Omoti::getKeyboard().getMappedKey(inputMapping);
 	keyName = util::StrToWStr(util::KeyToString(vKey));
 }
 
 void Keystrokes::Keystroke::updateKeyName() {
-	vKey = Latite::getKeyboard().getMappedKey(mapping);
+	vKey = Omoti::getKeyboard().getMappedKey(mapping);
 	keyName = util::StrToWStr(util::KeyToString(vKey));
 }

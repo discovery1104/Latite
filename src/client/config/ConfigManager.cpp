@@ -1,10 +1,10 @@
 #include "pch.h"
 #include "ConfigManager.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/feature/module/ModuleManager.h"
 
 ConfigManager::ConfigManager() {
-	auto folder = util::GetLatitePath() / "Configs";
+	auto folder = util::GetOmotiPath() / "Configs";
 	std::filesystem::create_directory(folder);
 	auto path = folder / "default.json";
 	masterConfig = std::make_shared<Config>(path);
@@ -18,13 +18,13 @@ void ConfigManager::applyLanguageConfig(std::string_view languageSettingName) {
 	for (auto& item : loadedConfig->getOutput()) {
 
 		// Might be a bit hacky
-		if (Latite::getSettings().name() == item->name()) {
+		if (Omoti::getSettings().name() == item->name()) {
 			item->forEach([&](std::shared_ptr<Setting> set) {
 				if (set->name() == languageSettingName) {
-					Latite::get().loadLanguageConfig(set);
+					Omoti::get().loadLanguageConfig(set);
 				}
 				});
-			Latite::get().loadConfig(*item.get());
+			Omoti::get().loadConfig(*item.get());
 		}
 	}
 }
@@ -33,15 +33,15 @@ void ConfigManager::applyGlobalConfig() {
 	for (auto& item : loadedConfig->getOutput()) {
 
 		// Might be a bit hacky
-		if (Latite::getSettings().name() == item->name()) {
-			Latite::get().loadConfig(*item.get());
+		if (Omoti::getSettings().name() == item->name()) {
+			Omoti::get().loadConfig(*item.get());
 		}
 	}
 }
 
 void ConfigManager::applyModuleConfig() {
 	for (auto& item : loadedConfig->getOutput()) {
-		auto mod = Latite::getModuleManager().find(item->name());
+		auto mod = Omoti::getModuleManager().find(item->name());
 		if (!mod) {
 			Logger::Warn("Could not find {} as module in config", item->name());
 		}
@@ -80,7 +80,7 @@ bool ConfigManager::loadUserConfig(std::wstring const& name) {
 }
 
 std::filesystem::path ConfigManager::getUserPath() {
-	return util::GetLatitePath() / "Configs";
+	return util::GetOmotiPath() / "Configs";
 }
 
 bool ConfigManager::load(std::shared_ptr<Config> cfg) {
@@ -92,9 +92,9 @@ bool ConfigManager::load(std::shared_ptr<Config> cfg) {
 
 bool ConfigManager::save(std::shared_ptr<Config> cfg) {
 	std::vector<SettingGroup*> groups = {};
-	groups.push_back(&Latite::getSettings());
+	groups.push_back(&Omoti::getSettings());
 
-	Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+	Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
 		groups.push_back(mod->settings.get());
 		});
 

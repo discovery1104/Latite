@@ -15,17 +15,17 @@
 using namespace std::chrono_literals;
 
 
-LatiteHooks::LatiteHooks() {}
+OmotiHooks::OmotiHooks() {}
 
-LatiteHooks::~LatiteHooks() {
+OmotiHooks::~OmotiHooks() {
 	MH_Uninitialize();
 }
 
-void LatiteHooks::enable() {
+void OmotiHooks::enable() {
 	MH_EnableHook(MH_ALL_HOOKS);
 }
 
-void LatiteHooks::disable() {
+void OmotiHooks::disable() {
 	MH_DisableHook(MH_ALL_HOOKS);
 	vh::unhook_all();
 }

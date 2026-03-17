@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "JsEvented.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/script/PluginManager.h"
 
 JsValueRef JsEvented::dispatchEvent(Event& ev) {
@@ -10,7 +10,7 @@ JsValueRef JsEvented::dispatchEvent(Event& ev) {
 		ev.arguments.insert(ev.arguments.begin(), evs.first);
 		JsValueRef val;
 
-		Latite::getPluginManager().handleErrors(Chakra::CallFunction(evs.first, ev.arguments.data(), static_cast<unsigned short>(ev.arguments.size()), &val));
+		Omoti::getPluginManager().handleErrors(Chakra::CallFunction(evs.first, ev.arguments.data(), static_cast<unsigned short>(ev.arguments.size()), &val));
 		return val;
 	}
 	return JS_INVALID_REFERENCE;

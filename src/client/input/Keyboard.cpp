@@ -4,7 +4,7 @@
 #include "mc/common/client/input/ClientInputHandler.h"
 #include <client/script/PluginManager.h>
 #include <chrono>
-#include <client/Latite.h>
+#include <client/Omoti.h>
 
 Keyboard::Keyboard(int* gameKeyMap) : keyMap(gameKeyMap) {
 	Eventing::get().listen<KeyUpdateEvent>(this, (EventListenerFunc)&Keyboard::onKey, 4);
@@ -90,7 +90,7 @@ void Keyboard::onChar(wchar_t ch, bool isChar) {
 		PluginManager::Event::Value val{L"characters"};
 		val.val = std::wstring(1, ch);
 		PluginManager::Event sEv{L"text-input", {val}, true};
-		cancel = Latite::getPluginManager().dispatchEvent(sEv);
+		cancel = Omoti::getPluginManager().dispatchEvent(sEv);
 	}
 
 	if (!cancel) {

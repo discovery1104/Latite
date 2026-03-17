@@ -12,7 +12,7 @@ struct HSV;
 namespace util {
 	extern std::filesystem::path GetRootPath();
 	extern std::filesystem::path GetRoamingPath();
-	extern std::filesystem::path GetLatitePath();
+	extern std::filesystem::path GetOmotiPath();
 	extern std::wstring StrToWStr(std::string const& s);
 	extern std::string WStrToStr(std::wstring const& ws);
 	extern std::wstring FormatWString(std::wstring const& formatString, std::vector<std::wstring> const& formatArgs);

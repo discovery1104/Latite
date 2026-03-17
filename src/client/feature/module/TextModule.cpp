@@ -105,7 +105,7 @@ void TextModule::render(DrawUtil& dc, bool isDefault, bool inEditor) {
 
 	//d2d::Rect rc = { 0.f, 0.f, rect.getWidth(), rect.getHeight() };
 
-	//dc.fillRoundedRectangle(rc, Latite::get().getHUDBlurBrush(), rad);
+	//dc.fillRoundedRectangle(rc, Omoti::get().getHUDBlurBrush(), rad);
 	dc.flush();
 }
 

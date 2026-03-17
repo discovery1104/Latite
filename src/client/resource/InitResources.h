@@ -8,14 +8,22 @@ LOAD_RESOURCE(checkmark_png);
 LOAD_RESOURCE(cog_png);
 LOAD_RESOURCE(document_png);
 LOAD_RESOURCE(hudedit_png);
-LOAD_RESOURCE(latitewhite_png);
+LOAD_RESOURCE(Omotiwhite_png);
 LOAD_RESOURCE(logo_png);
 LOAD_RESOURCE(searchicon_png);
 LOAD_RESOURCE(x_png);
 LOAD_RESOURCE(document_png);
+LOAD_RESOURCE(fonts_omoti_ui_ttf);
+LOAD_RESOURCE(icons_music_play_svg);
+LOAD_RESOURCE(icons_music_pause_svg);
+LOAD_RESOURCE(icons_music_prev_svg);
+LOAD_RESOURCE(icons_music_next_svg);
+LOAD_RESOURCE(icons_music_shuffle_svg);
+LOAD_RESOURCE(icons_music_repeat_svg);
+LOAD_RESOURCE(icons_music_refresh_svg);
 
 // JavaScript
-LOAD_RESOURCE(latiteapi_js)
+LOAD_RESOURCE(Omotiapi_js)
 
 // Translations
 LOAD_RESOURCE(lang_ar_AR_json);

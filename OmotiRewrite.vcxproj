@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Beta|Win32">
@@ -54,7 +54,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{5b4bae65-3d2d-4e71-854e-53438e690dad}</ProjectGuid>
-    <RootNamespace>LatiteRewrite</RootNamespace>
+    <RootNamespace>OmotiRewrite</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -169,24 +169,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(ProjectDir)out\build\x64-release-clean\_deps\glm-src;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)deps\lib;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(ProjectDir)out\build\x64-release-clean\_deps\glm-src;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Nightly|x64'">
-    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(ProjectDir)out\build\x64-release-clean\_deps\glm-src;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Beta|x64'">
-    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(ProjectDir)out\build\x64-release-clean\_deps\glm-src;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLegacy|x64'">
-    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)src;$(ProjectDir)deps\include;$(ProjectDir)out\build\x64-release-clean\_deps\glm-src;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)deps\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -269,14 +269,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>LATITE_DEBUG;_NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Omoti_DEBUG;_NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(ProjectDir)out\debug\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <ModuleOutputFile>Latite</ModuleOutputFile>
+      <ModuleOutputFile>Omoti</ModuleOutputFile>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
@@ -298,7 +298,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>LATITE_PUBLIC;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Omoti_PUBLIC;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -325,7 +325,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>LATITE_NIGHTLY;LATITE_PUBLIC;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Omoti_NIGHTLY;Omoti_PUBLIC;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -353,7 +353,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>LATITE_BETA;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>Omoti_BETA;_HAS_STATIC_RTTI=0;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -419,7 +419,7 @@
     <ClInclude Include="src\client\event\impl\ClientTextEvent.h" />
     <ClInclude Include="src\client\event\impl\FogColorEvent.h" />
     <ClInclude Include="src\client\event\impl\GetTimeEvent.h" />
-    <ClInclude Include="src\client\event\impl\LatiteClientMessageEvent.h" />
+    <ClInclude Include="src\client\event\impl\OmotiClientMessageEvent.h" />
     <ClInclude Include="src\client\event\impl\OutlineSelectionEvent.h" />
     <ClInclude Include="src\client\event\impl\PacketReceiveEvent.h" />
     <ClInclude Include="src\client\event\impl\SendPacketEvent.h" />
@@ -559,7 +559,7 @@
     <ClInclude Include="src\client\hook\impl\RenderControllerHooks.h" />
     <ClInclude Include="src\client\hook\impl\ScreenViewHooks.h" />
     <ClInclude Include="src\client\input\Keyboard.h" />
-    <ClInclude Include="src\client\Latite.h" />
+    <ClInclude Include="src\client\Omoti.h" />
     <ClInclude Include="src\client\localization\LocalizeData.h" />
     <ClInclude Include="src\client\localization\LocalizeString.h" />
     <ClInclude Include="src\client\misc\ClientMessageQueue.h" />
@@ -835,7 +835,7 @@
     <ClCompile Include="src\client\hook\impl\RenderControllerHooks.cpp" />
     <ClCompile Include="src\client\hook\impl\ScreenViewHooks.cpp" />
     <ClCompile Include="src\client\input\Keyboard.cpp" />
-    <ClCompile Include="src\client\Latite.cpp" />
+    <ClCompile Include="src\client\Omoti.cpp" />
     <ClCompile Include="src\client\localization\LocalizeData.cpp" />
     <ClCompile Include="src\client\localization\LocalizeString.cpp" />
     <ClCompile Include="src\client\misc\ClientMessageQueue.cpp" />
@@ -946,10 +946,10 @@
     <None Include="assets\lang\pt_BR.json" />
     <None Include="CMakePresets.json" />
     <None Include="CppProperties.json" />
-    <None Include="src\client\script\js\latiteapi.js" />
+    <None Include="src\client\script\js\Omotiapi.js" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LatiteRewrite.rc" />
+    <ResourceCompile Include="OmotiRewrite.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\arrow.png" />

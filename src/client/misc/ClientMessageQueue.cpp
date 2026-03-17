@@ -14,7 +14,7 @@ void ClientMessageQueue::doPrint(int numMessages) {
 		auto cInst = SDK::ClientInstance::get();
 		auto lp = cInst->getLocalPlayer();
 		if (lp) {
-			LatiteClientMessageEvent ev{ msg };
+			OmotiClientMessageEvent ev{ msg };
 			Eventing::get().dispatch(ev);
 
 			cInst->getGuiData()->displayClientMessage(std::string(msg)); // new string has to be created as it crashes otherwise
@@ -41,7 +41,7 @@ void ClientMessageQueue::display(std::string const& message) {
 	auto cInst = SDK::ClientInstance::get();
 	auto lp = cInst->getLocalPlayer();
 	if (lp) {
-		LatiteClientMessageEvent ev{ message };
+		OmotiClientMessageEvent ev{ message };
 		Eventing::get().dispatch(ev);
 		cInst->getGuiData()->displayClientMessage(message);
 	}

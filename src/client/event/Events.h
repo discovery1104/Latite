@@ -20,7 +20,7 @@
 #include "events/GetTimeEvent.h"
 #include "events/HideHandEvent.h"
 #include "events/KeyUpdateEvent.h"
-#include "events/LatiteClientMessageEvent.h"
+#include "events/OmotiClientMessageEvent.h"
 #include "events/LeaveGameEvent.h"
 #include "events/OutlineSelectionEvent.h"
 #include "events/OverlayColorEvent.h"

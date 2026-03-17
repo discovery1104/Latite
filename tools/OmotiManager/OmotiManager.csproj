@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <AssemblyName>OmotiManager</AssemblyName>
+    <RootNamespace>OmotiManager</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="..\..\assets\Omotiwhite.png" Link="Assets\Omotiwhite.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="vendor\yt-dlp.exe" LogicalName="OmotiManager.Bundled.yt-dlp.exe" />
+    <EmbeddedResource Include="vendor\ffmpeg.exe" LogicalName="OmotiManager.Bundled.ffmpeg.exe" />
+    <None Include="vendor\yt-dlp.LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
+  </ItemGroup>
+
+</Project>

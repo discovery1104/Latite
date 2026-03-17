@@ -364,3 +364,13 @@ FodyWeavers.xsd
 
 .idea/
 cmake-build-*/
+# Omoti publish artifacts
+tools/OmotiManager/publish-*/
+tools/OmotiManager/vendor/deno.exe
+tools/OmotiManager/vendor/deno.zip
+tools/OmotiManager/vendor/ffmpeg.exe
+tools/OmotiManager/vendor/ffmpeg.zip
+tools/OmotiManager/vendor/ffprobe.exe
+tools/OmotiManager/vendor/yt-dlp.exe
+tools/OmotiManager/vendor/ffmpeg_extract/
+tools/OmotiMusicHelper/publish-single/

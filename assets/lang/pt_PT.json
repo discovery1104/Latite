@@ -1,7 +1,7 @@
 {
   "name": "Português (PT)",
   "translations": {
-    "client.intro.welcome": "Bem vindo ao Latite Client!",
+    "client.intro.welcome": "Bem vindo ao Omoti Client!",
     "client.intro.menubutton": "Pressiona {} num mundo ou servidor para abrir o menu de mods.",
     "client.settings.menuKey.name": "Tecla de Menu",
     "client.settings.ejectKey.name": "Tecla de Ejetar",
@@ -34,7 +34,7 @@
     "client.settings.centerCursor.desc": "A mira será centrada quando abrires o menu.",
     "client.settings.snapLines.desc": "Linhas de ajuste para te ajudar a alinhar os mods.",
     "client.settings.detectLanguage.name": "Detetar Idioma",
-    "client.settings.detectLanguage.desc": "Muda automaticamente o idioma do Latite Client baseada no idioma do sistema.",
+    "client.settings.detectLanguage.desc": "Muda automaticamente o idioma do Omoti Client baseada no idioma do sistema.",
     "client.settings.mcRendererFont.default.name": "Padrão",
     "client.settings.mcRendererFont.notoSans.name": "Noto Sans",
     "client.settings.mcRendererFont.default.desc": "A fonte padrão da IU (Mojangles por padrão)",
@@ -415,7 +415,7 @@
     "client.module.autoGG.customMessage.desc": "A mensagem personalizada a enviar",
     "client.commands.help.desc": "Mostra todos os comandos e descrições.",
     "client.commands.eject.ejectMsg.name": "O client foi removido do jogo.",
-    "client.commands.eject.desc": "Remove o Latite do jogo.",
+    "client.commands.eject.desc": "Remove o Omoti do jogo.",
     "client.commands.setPrefix.success.name": "O prefixo de comandos está definido como &7'{}'",
     "client.commands.setPrefix.desc": "Definir o prefixo de comandos",
     "client.commands.toggle.msg.unknownModule.name": "Mod desconhecido {}",

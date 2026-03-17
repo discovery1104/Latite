@@ -32,10 +32,12 @@ public:
 using EventListenerFunc = void(Listener::*)(Event&);
 
 struct EventListener {
-	constexpr EventListener(EventListenerFunc fp, Listener* ptr, bool callWhileInactive, int priority) : fptr(fp), listener(ptr), callWhileInactive(callWhileInactive), priority(priority) {}
+	constexpr EventListener(EventListenerFunc fp, Listener* ptr, bool callWhileInactive, int priority)
+		: fptr(fp), listener(ptr), listenerToken(ptr ? ptr->getLifetimeToken() : 0), priority(priority), callWhileInactive(callWhileInactive) {}
 
 	EventListenerFunc fptr;
 	class Listener* listener;
+	uint64_t listenerToken = 0;
 	int priority = 0;
 	bool callWhileInactive;
 };

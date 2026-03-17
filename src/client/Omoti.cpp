@@ -1,9 +1,9 @@
-﻿#include "pch.h"
-// LatiteRecode.cpp : Defines the entry point for the application.
+#include "pch.h"
+// OmotiRecode.cpp : Defines the entry point for the application.
 //
 #include <regex>
 
-#include "Latite.h"
+#include "Omoti.h"
 #include "localization/LocalizeString.h"
 
 #include "client/screen/TextBox.h"
@@ -14,6 +14,7 @@
 
 #include "config/ConfigManager.h"
 #include "misc/ClientMessageQueue.h"
+#include "misc/MusicHelperClient.h"
 #include "input/Keyboard.h"
 #include "memory/hook/Hooks.h"
 #include "event/Eventing.h"
@@ -66,14 +67,14 @@ using namespace std;
 
 namespace {
     alignas(Eventing) char eventing[sizeof(Eventing)] = {};
-    alignas(Latite) char latiteBuf[sizeof(Latite)] = {};
+    alignas(Omoti) char OmotiBuf[sizeof(Omoti)] = {};
     alignas(Renderer) char rendererBuf[sizeof(Renderer)] = {};
     alignas(ModuleManager) char mmgrBuf[sizeof(ModuleManager)] = {};
     alignas(ClientMessageQueue) char messageSinkBuf[sizeof(ClientMessageQueue)] = {};
     alignas(CommandManager) char commandMgrBuf[sizeof(CommandManager)] = {};
     alignas(ConfigManager) char configMgrBuf[sizeof(ConfigManager)] = {};
     alignas(SettingGroup) char mainSettingGroup[sizeof(SettingGroup)] = {};
-    alignas(LatiteHooks) char hooks[sizeof(LatiteHooks)] = {};
+    alignas(OmotiHooks) char hooks[sizeof(OmotiHooks)] = {};
     alignas(ScreenManager) char scnMgrBuf[sizeof(ScreenManager)] = {};
     alignas(Assets) char assetsBuf[sizeof(Assets)] = {};
     alignas(PluginManager) char scriptMgrBuf[sizeof(PluginManager)] = {};
@@ -81,6 +82,7 @@ namespace {
     alignas(Notifications) char notificaitonsBuf[sizeof(Notifications)] = {};
 
     bool hasInjected = false;
+    constexpr bool kMusicOnlyLiteMode = true;
 }
 
 #define MVSIG(...) ([]() -> std::pair<SigImpl*, SigImpl*> {\
@@ -96,18 +98,20 @@ DWORD __stdcall startThread(HINSTANCE dll) {
     // Needed for Logger
     new (messageSinkBuf) ClientMessageQueue;
     new (eventing) Eventing();
-    new (latiteBuf) Latite;
+    new (OmotiBuf) Omoti;
     new (notificaitonsBuf) Notifications;
 
-    std::filesystem::create_directory(util::GetLatitePath());
-    std::filesystem::create_directory(util::GetLatitePath() / "Assets");
+    std::filesystem::create_directory(util::GetOmotiPath());
+    std::filesystem::create_directory(util::GetOmotiPath() / "Assets");
+    Logger::SetupConsole();
     Logger::Setup();
+    Logger::Info("BUILD_MARKER: omoti-v2.9");
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
     AddVectoredExceptionHandler(1, VectoredExceptionHandler);
 #endif
 
-    Logger::Info(XOR_STRING("Latite Client {}"), Latite::version);
+    Logger::Info(XOR_STRING("Omoti Music Client {}"), Omoti::version);
 
     char path[MAX_PATH]{};
     GetModuleFileNameA(nullptr, path, MAX_PATH);
@@ -132,7 +136,7 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         const auto minor = LOWORD(fileInfo->dwFileVersionMS);
         const auto build = HIWORD(fileInfo->dwFileVersionLS);
 
-        Latite::get().gameVersion = std::format("{}.{}.{}", major, minor, build);
+        Omoti::get().gameVersion = std::format("{}.{}.{}", major, minor, build);
     }
     
     /*winrt::Windows::ApplicationModel::Package package = winrt::Windows::ApplicationModel::Package::Current();
@@ -145,14 +149,14 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         int ps = std::stoi(rem);
         std::stringstream ss;
         ss << version.Major << "." << version.Minor << "." << ps;// hacky
-        Latite::get().gameVersion = ss.str();
+        Omoti::get().gameVersion = ss.str();
     }*/
-    Logger::Info("Minecraft {}", Latite::get().gameVersion);
+    Logger::Info("Minecraft {}", Omoti::get().gameVersion);
 
     Logger::Info(XOR_STRING("Loading assets"));
-    Latite::get().dllInst = dll;
+    Omoti::get().dllInst = dll;
     // ... init assets
-    Latite::get().initL10n();
+    Omoti::get().initL10n();
 
     Logger::Info("Resolving signatures..");
 
@@ -166,14 +170,14 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         { "1.26.3", SDK::V1_26_0 },
     };
 
-    if (versNumMap.contains(Latite::get().gameVersion)) {
+    if (versNumMap.contains(Omoti::get().gameVersion)) {
         // not needed as it will always just be latest
-        //auto vers =  versNumMap[Latite::get().gameVersion];
+        //auto vers =  versNumMap[Omoti::get().gameVersion];
         //SDK::internalVers = vers;
     }
     else {
         std::stringstream ss;
-        ss << XOR_STRING("Latite Client does not support your version: ") << Latite::get().gameVersion << XOR_STRING(". Latite only supports the following versions:\n\n");
+        ss << XOR_STRING("Omoti Music Client does not support your version: ") << Omoti::get().gameVersion << XOR_STRING(". Omoti Music Client only supports the following versions:\n\n");
 
         for (auto& key : versNumMap) {
             ss << key.first << "\n";
@@ -253,7 +257,7 @@ DWORD __stdcall startThread(HINSTANCE dll) {
     };
     
     new (configMgrBuf) ConfigManager();
-    if (!Latite::getConfigManager().loadMaster()) {
+    if (!Omoti::getConfigManager().loadMaster()) {
         Logger::Fatal(XOR_STRING("Could not load master config!"));
     }
     else {
@@ -262,13 +266,13 @@ DWORD __stdcall startThread(HINSTANCE dll) {
     new (mainSettingGroup) SettingGroup("global");
 
     // The Language setting is a special case because we need it to apply names to other global settings.
-    Latite::get().initLanguageSetting();
-    Latite::getConfigManager().applyLanguageConfig("language");
+    Omoti::get().initLanguageSetting();
+    Omoti::getConfigManager().applyLanguageConfig("language");
 
-    Latite::get().initSettings();
-    Latite::getConfigManager().applyGlobalConfig();
+    Omoti::get().initSettings();
+    Omoti::getConfigManager().applyGlobalConfig();
 
-    Latite::get().detectLanguage();
+    Omoti::get().detectLanguage();
 
     new (mmgrBuf) ModuleManager;
     new (commandMgrBuf) CommandManager;
@@ -282,7 +286,7 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         if (!entry.first->mod) continue;
         auto res = entry.first->resolve();
         if (!res) {
-#if LATITE_DEBUG
+#if Omoti_DEBUG
             Logger::Warn("Signature {} failed to resolve!", entry.first->name);
 #endif
             deadCount++;
@@ -293,12 +297,12 @@ DWORD __stdcall startThread(HINSTANCE dll) {
             sigCount++;
         }
     }
-#if LATITE_DEBUG
+#if Omoti_DEBUG
     Logger::Info("Resolved {} signatures ({} dead)", sigCount, deadCount);
 #endif
 
     MH_Initialize();
-    new (hooks) LatiteHooks();
+    new (hooks) OmotiHooks();
 
     new (keyboardBuf) Keyboard(reinterpret_cast<int*>(Signatures::KeyMap.result));
 
@@ -308,9 +312,9 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         std::this_thread::sleep_for(10ms);
     }
 
-    Latite::get().initialize(dll);
+    Omoti::get().initialize(dll);
 
-    Logger::Info(XOR_STRING("Initialized Latite Client"));
+    Logger::Info(XOR_STRING("Initialized Omoti Music Client"));
     return 0ul;
     END_ERROR_HANDLER
 }
@@ -332,112 +336,112 @@ BOOL WINAPI DllMain(
     else if (fdwReason == DLL_PROCESS_DETACH) {
         // Remove singletons
 
-        Latite::getHooks().disable();
+        Omoti::getHooks().disable();
 
         // Wait for all running hooks accross different threads to stop executing
         std::this_thread::sleep_for(200ms);
 
-        Latite::getConfigManager().saveCurrentConfig();
+        Omoti::getConfigManager().saveCurrentConfig();
 
-        Latite::getKeyboard().~Keyboard();
-        Latite::getModuleManager().~ModuleManager();
-        Latite::getClientMessageQueue().~ClientMessageQueue();
-        Latite::getCommandManager().~CommandManager();
-        Latite::getSettings().~SettingGroup();
-        Latite::getHooks().~LatiteHooks();
-        Latite::getEventing().~Eventing();
-        Latite::getRenderer().~Renderer();
-        Latite::getAssets().~Assets();
-        Latite::getScreenManager().~ScreenManager();
-        Latite::getPluginManager().~PluginManager();
-        Latite::getNotifications().~Notifications();
-        Latite::get().~Latite();
+        Omoti::getKeyboard().~Keyboard();
+        Omoti::getModuleManager().~ModuleManager();
+        Omoti::getClientMessageQueue().~ClientMessageQueue();
+        Omoti::getCommandManager().~CommandManager();
+        Omoti::getSettings().~SettingGroup();
+        Omoti::getHooks().~OmotiHooks();
+        Omoti::getEventing().~Eventing();
+        Omoti::getRenderer().~Renderer();
+        Omoti::getAssets().~Assets();
+        Omoti::getScreenManager().~ScreenManager();
+        Omoti::getPluginManager().~PluginManager();
+        Omoti::getNotifications().~Notifications();
+        Omoti::get().~Omoti();
 
         MH_Uninitialize();
 
         hasInjected = false;
-        Logger::Info("Latite Client detached.");
+        Logger::Info("Omoti Music Client detached.");
     }
     return TRUE;  // Successful DLL_PROCESS_ATTACH.
     END_ERROR_HANDLER
 }
 
-Latite& Latite::get() noexcept {
-    return *std::launder(reinterpret_cast<Latite*>(latiteBuf));
+Omoti& Omoti::get() noexcept {
+    return *std::launder(reinterpret_cast<Omoti*>(OmotiBuf));
 }
 
-ModuleManager& Latite::getModuleManager() noexcept {
+ModuleManager& Omoti::getModuleManager() noexcept {
     return *std::launder(reinterpret_cast<ModuleManager*>(mmgrBuf));
 }
 
-CommandManager& Latite::getCommandManager() noexcept {
+CommandManager& Omoti::getCommandManager() noexcept {
     return *std::launder(reinterpret_cast<CommandManager*>(commandMgrBuf));
 }
 
-ConfigManager& Latite::getConfigManager() noexcept {
+ConfigManager& Omoti::getConfigManager() noexcept {
     return *std::launder(reinterpret_cast<ConfigManager*>(configMgrBuf));
 }
 
-ClientMessageQueue& Latite::getClientMessageQueue() noexcept {
+ClientMessageQueue& Omoti::getClientMessageQueue() noexcept {
     return *std::launder(reinterpret_cast<ClientMessageQueue*>(messageSinkBuf));
 }
 
-SettingGroup& Latite::getSettings() noexcept {
+SettingGroup& Omoti::getSettings() noexcept {
     return *std::launder(reinterpret_cast<SettingGroup*>(mainSettingGroup));
 }
 
-LatiteHooks& Latite::getHooks() noexcept {
-    return *std::launder(reinterpret_cast<LatiteHooks*>(hooks));
+OmotiHooks& Omoti::getHooks() noexcept {
+    return *std::launder(reinterpret_cast<OmotiHooks*>(hooks));
 }
 
-Eventing& Latite::getEventing() noexcept {
+Eventing& Omoti::getEventing() noexcept {
     return *std::launder(reinterpret_cast<Eventing*>(eventing));
 }
 
-Renderer& Latite::getRenderer() noexcept {
+Renderer& Omoti::getRenderer() noexcept {
     return *std::launder(reinterpret_cast<Renderer*>(rendererBuf));
 }
 
-ScreenManager& Latite::getScreenManager() noexcept {
+ScreenManager& Omoti::getScreenManager() noexcept {
     return *std::launder(reinterpret_cast<ScreenManager*>(scnMgrBuf));
 }
 
-Assets& Latite::getAssets() noexcept {
+Assets& Omoti::getAssets() noexcept {
     return *std::launder(reinterpret_cast<Assets*>(assetsBuf));
 }
 
-PluginManager& Latite::getPluginManager() noexcept {
+PluginManager& Omoti::getPluginManager() noexcept {
     return *std::launder(reinterpret_cast<PluginManager*>(scriptMgrBuf));
 }
 
-Keyboard& Latite::getKeyboard() noexcept {
+Keyboard& Omoti::getKeyboard() noexcept {
     return *std::launder(reinterpret_cast<Keyboard*>(keyboardBuf));
 }
 
-Notifications& Latite::getNotifications() noexcept {
+Notifications& Omoti::getNotifications() noexcept {
     return *std::launder(reinterpret_cast<Notifications*>(notificaitonsBuf));
 }
 
-std::optional<float> Latite::getMenuBlur() {
+std::optional<float> Omoti::getMenuBlur() {
     if (std::get<BoolValue>(this->menuBlurEnabled)) {
         return std::get<FloatValue>(this->menuBlur);
     }
     return std::nullopt;
 }
 
-std::vector<std::string> Latite::getLatiteUsers() {
-    return latiteUsers;
+std::vector<std::string> Omoti::getOmotiUsers() {
+    return this->OmotiUsers;
 }
 
-void Latite::queueEject() noexcept {
+void Omoti::queueEject() noexcept {
     //auto app = winrt::Windows::UI::ViewManagement::ApplicationView::GetForCurrentView();
     //app.Title(L"");
-    SetWindowTextW(SDK::GameCore::get()->hwnd, L"Minecraft");
+    MusicHelperClient::get().shutdown();
     this->shouldEject = true;
     CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)FreeLibraryAndExitThread, dllInst, 0, nullptr));
 }
 
-SDK::Font* Latite::getFont() {
+SDK::Font* Omoti::getFont() {
     switch (this->mcRendFont.getSelectedKey()) {
     case 0:
         return SDK::ClientInstance::get()->minecraftGame->minecraftFont;
@@ -449,24 +453,31 @@ SDK::Font* Latite::getFont() {
     }
 }
 
-void Latite::initialize(HINSTANCE hInst) {
+void Omoti::initialize(HINSTANCE hInst) {
     this->dllInst = hInst;
 
-    Latite::getPluginManager().init();
-    Logger::Info(XOR_STRING("Script manager initialized."));
+    if (!kMusicOnlyLiteMode) {
+        Omoti::getPluginManager().init();
+        Logger::Info(XOR_STRING("Script manager initialized."));
+    }
+    else {
+        Logger::Info("Music-only lite mode: scripting init skipped");
+    }
 
-    Latite::getEventing().listen<UpdateEvent, &Latite::onUpdate>(this, 2);
-    Latite::getEventing().listen<KeyUpdateEvent, &Latite::onKey>(this, 2);
-    Latite::getEventing().listen<RendererInitEvent, &Latite::onRendererInit>(this, 2);
-    Latite::getEventing().listen<RendererCleanupEvent, &Latite::onRendererCleanup>(this, 2);
-    Latite::getEventing().listen<AppSuspendedEvent, &Latite::onSuspended>(this, 2);
-    Latite::getEventing().listen<CharEvent, &Latite::onChar>(this, 2);
-    Latite::getEventing().listen<ClickEvent, &Latite::onClick>(this, 2);
-    Latite::getEventing().listen<BobMovementEvent, &Latite::onBobView>(this, 2);
-    Latite::getEventing().listen<LeaveGameEvent, &Latite::onLeaveGame>(this, 2);
-    Latite::getEventing().listen<RenderLayerEvent, &Latite::onRenderLayer>(this, 2);
-    Latite::getEventing().listen<RenderOverlayEvent, &Latite::onRenderOverlay>(this, 2);
-    Latite::getEventing().listen<TickEvent, &Latite::onTick>(this, 2);
+    Omoti::getEventing().listen<UpdateEvent, &Omoti::onUpdate>(this, 2);
+    Omoti::getEventing().listen<KeyUpdateEvent, &Omoti::onKey>(this, 2);
+    Omoti::getEventing().listen<RendererInitEvent, &Omoti::onRendererInit>(this, 2);
+    Omoti::getEventing().listen<RendererCleanupEvent, &Omoti::onRendererCleanup>(this, 2);
+    Omoti::getEventing().listen<AppSuspendedEvent, &Omoti::onSuspended>(this, 2);
+    Omoti::getEventing().listen<CharEvent, &Omoti::onChar>(this, 2);
+    Omoti::getEventing().listen<LeaveGameEvent, &Omoti::onLeaveGame>(this, 2);
+    Omoti::getEventing().listen<RenderOverlayEvent, &Omoti::onRenderOverlay>(this, 2);
+    if (!kMusicOnlyLiteMode) {
+        Omoti::getEventing().listen<ClickEvent, &Omoti::onClick>(this, 2);
+        Omoti::getEventing().listen<BobMovementEvent, &Omoti::onBobView>(this, 2);
+        Omoti::getEventing().listen<RenderLayerEvent, &Omoti::onRenderLayer>(this, 2);
+        Omoti::getEventing().listen<TickEvent, &Omoti::onTick>(this, 2);
+    }
 
     Logger::Info(XOR_STRING("Initialized Hooks"));
     getHooks().enable();
@@ -478,41 +489,36 @@ void Latite::initialize(HINSTANCE hInst) {
     //}
 }
 
-void Latite::threadsafeInit() {
+void Omoti::threadsafeInit() {
     this->gameThreadId = std::this_thread::get_id();
-    // TODO: latite beta only
+    // TODO: Omoti beta only
     //if (SDK::ClientInstance::get()->minecraftGame->xuid.size() > 0) wnd->postXUID();
 
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
     // Set SEH translator for game thread
     _set_se_translator(translate_seh_to_cpp_exception);
 #endif
 
 
-    //auto app = winrt::Windows::UI::ViewManagement::ApplicationView::GetForCurrentView();
-    std::string vstr(this->version);
-	
-#if defined(LATITE_NIGHTLY)
-    auto ws = util::StrToWStr("Latite Client [NIGHTLY] " + gameVersion + " " + vstr + "/" + calcCurrentDLLHash());
-#elif defined(LATITE_DEBUG)
-    auto ws = util::StrToWStr("Latite Client [DEBUG] " + gameVersion + " " + vstr + "/" + calcCurrentDLLHash());
-#else
-    auto ws = util::StrToWStr("Latite Client " + vstr);
-#endif
-
-    //app.Title(ws);
-    SetWindowTextW(SDK::GameCore::get()->hwnd, ws.c_str());
-    Latite::getPluginManager().loadPrerunScripts();
-    Logger::Info(XOR_STRING("Loaded startup scripts"));
+    // Keep the game window title untouched.
+    if (!kMusicOnlyLiteMode) {
+        Omoti::getPluginManager().loadPrerunScripts();
+        Logger::Info(XOR_STRING("Loaded startup scripts"));
+    }
+    else {
+        Logger::Info("Music-only lite mode: startup scripts skipped");
+    }
     
-    Latite::getConfigManager().applyModuleConfig();
+    if (!kMusicOnlyLiteMode) {
+        Omoti::getConfigManager().applyModuleConfig();
+    }
 
-    Latite::getRenderer().setShouldInit();
+    Omoti::getRenderer().setShouldInit();
 
-    Latite::getCommandManager().prefix = Latite::get().getCommandPrefix();
-    Latite::getNotifications().push(LocalizeString::get("client.intro.welcome"));
-    Latite::getNotifications().push(util::FormatWString(LocalizeString::get("client.intro.menubutton"), { util::StrToWStr(util::KeyToString(Latite::get().getMenuKey().value)) }));
+    Omoti::getCommandManager().prefix = Omoti::get().getCommandPrefix();
+    Omoti::getNotifications().push(LocalizeString::get("client.intro.welcome"));
+    Omoti::getNotifications().push(util::FormatWString(LocalizeString::get("client.intro.menubutton"), { util::StrToWStr(util::KeyToString(Omoti::get().getMenuKey().value)) }));
 }
 
 static void blockModules(std::string_view moduleName, std::string_view serverName) {
@@ -520,7 +526,7 @@ static void blockModules(std::string_view moduleName, std::string_view serverNam
 
     std::vector<std::wstring> blockedList;
     if (inst->dns.find(serverName) != std::string::npos) {
-        Latite::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
+        Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> mod) {
             if (!mod->isBlocked()) {
                 if (mod->name() == moduleName) {
                     blockedList.push_back(mod->getDisplayName());
@@ -540,11 +546,11 @@ static void blockModules(std::string_view moduleName, std::string_view serverNam
         }
         str += L" will be blocked on this server.";
 
-        Latite::getNotifications().push(str);
+        Omoti::getNotifications().push(str);
     }
 }
 
-void Latite::updateModuleBlocking() {
+void Omoti::updateModuleBlocking() {
     auto inst = SDK::RakNetConnector::get();
     if (!inst) return;
 
@@ -568,8 +574,8 @@ namespace {
 
 
 // TODO: Remove this, there's no point of it being here
-std::string Latite::fetchLatestGitHash() {
-    std::string url = "https://api.github.com/repos/LatiteClient/Latite/commits/master";
+std::string Omoti::fetchLatestGitHash() {
+    std::string url = "https://api.github.com/repos/OmotiClient/Omoti/commits/master";
     HttpClient client;
     winrt::Windows::Foundation::Uri uri(winrt::to_hstring(url));
 
@@ -588,8 +594,8 @@ std::string Latite::fetchLatestGitHash() {
 }
 
 // Also remove this
-std::string Latite::calcCurrentDLLHash() {
-    std::wstring dllPath = Latite::get().GetCurrentModuleFilePath(dllInst);
+std::string Omoti::calcCurrentDLLHash() {
+    std::wstring dllPath = Omoti::get().GetCurrentModuleFilePath(dllInst);
 
     std::ifstream file(dllPath, std::ios::binary);
     if (!file.is_open()) {
@@ -624,7 +630,7 @@ std::string Latite::calcCurrentDLLHash() {
     return hashString.str().substr(0, 7);
 }
 
-std::wstring Latite::GetCurrentModuleFilePath(HMODULE hModule) {
+std::wstring Omoti::GetCurrentModuleFilePath(HMODULE hModule) {
     std::vector<wchar_t> buffer(MAX_PATH);
 
     DWORD result = GetModuleFileNameW(hModule, buffer.data(), static_cast<DWORD>(buffer.size()));
@@ -643,13 +649,13 @@ std::wstring Latite::GetCurrentModuleFilePath(HMODULE hModule) {
     return std::wstring(L"couldn't get file path");
 }
 
-void Latite::initSettings() {
+void Omoti::initSettings() {
     {
         auto set = std::make_shared<Setting>("menuKey", LocalizeString::get("client.settings.menuKey.name"),
                                              LocalizeString::get("client.settings.menuKey.desc"));
         set->value = &this->menuKey;
         set->callback = [this](Setting& set) {
-            Latite::getScreenManager().get<HUDEditor>().key = this->getMenuKey();
+            Omoti::getScreenManager().get<ClickGUI>().key = this->getMenuKey();
         };
         this->getSettings().addSetting(set);
     }
@@ -752,7 +758,7 @@ void Latite::initSettings() {
     }
 
     {
-        //auto set = std::make_shared<Setting>("broadcastClientUsage", "Latite Client Presence", "If you leave this on, others with Latite will see that you are using Latite and you will see other people who use Latite.");
+        //auto set = std::make_shared<Setting>("broadcastClientUsage", "Omoti Client Presence", "If you leave this on, others with Omoti will see that you are using Omoti and you will see other people who use Omoti.");
         //set->value = &this->broadcastUsage;
         //this->getSettings().addSetting(set);
     }
@@ -790,19 +796,19 @@ void Latite::initSettings() {
     }
 }
 
-void Latite::queueForUIRender(std::function<void(SDK::MinecraftUIRenderContext* ctx)> callback) {
+void Omoti::queueForUIRender(std::function<void(SDK::MinecraftUIRenderContext* ctx)> callback) {
     this->uiRenderQueue.push(callback);
 }
 
-void Latite::queueForClientThread(std::function<void()> callback) {
+void Omoti::queueForClientThread(std::function<void()> callback) {
     this->clientThreadQueue.push(callback);
 }
 
-void Latite::queueForDXRender(std::function<void(ID2D1DeviceContext* ctx)> callback) {
+void Omoti::queueForDXRender(std::function<void(ID2D1DeviceContext* ctx)> callback) {
     this->dxRenderQueue.push(callback);
 }
 
-void Latite::initL10n() {
+void Omoti::initL10n() {
     l10nData = LocalizeData();
 }
 
@@ -810,9 +816,9 @@ namespace {
     winrt::Windows::Foundation::IAsyncAction doDownloadAssets() {
         auto http = HttpClient();
 
-        auto folderPath = util::GetLatitePath() / "Assets";
+        auto folderPath = util::GetOmotiPath() / "Assets";
 
-        winrt::Windows::Foundation::Uri requestUri(util::StrToWStr(XOR_STRING("https://raw.githubusercontent.com/Imrglop/Latite-Releases/main/bin/ChakraCore.dll")));
+        winrt::Windows::Foundation::Uri requestUri(util::StrToWStr(XOR_STRING("https://raw.githubusercontent.com/Imrglop/Omoti-Releases/main/bin/ChakraCore.dll")));
 
         auto buffer = co_await http.GetBufferAsync(requestUri);
 
@@ -830,20 +836,20 @@ namespace {
     }
 }
 
-void Latite::downloadChakraCore() {
+void Omoti::downloadChakraCore() {
     if (!downloadingAssets) {
         this->downloadingAssets = true;
         doDownloadAssets();
     }
 }
 
-void Latite::initLanguageSetting() {
+void Omoti::initLanguageSetting() {
     auto set = std::make_shared<Setting>("language", L"Language",
         L"The client's language.");
     set->enumData = &this->clientLanguage;
     set->value = set->enumData->getValue();
     set->userUpdateCallback = [](Setting&) {
-        Latite::getNotifications().push(LocalizeString::get("client.message.languageSwitchHelper.name"));
+        Omoti::getNotifications().push(LocalizeString::get("client.message.languageSwitchHelper.name"));
         };
 
     for (int i = 0; auto & lang : l10nData->getLanguages()) {
@@ -855,7 +861,7 @@ void Latite::initLanguageSetting() {
     this->getSettings().addSetting(set);
 }
 
-void Latite::detectLanguage() {
+void Omoti::detectLanguage() {
     if (!this->getDetectLanguageSetting()) return;
 
     winrt::hstring topUserLanguage = winrt::Windows::System::UserProfile::GlobalizationPreferences::Languages().GetAt(0);
@@ -871,7 +877,7 @@ void Latite::detectLanguage() {
         systemLanguage = match[1].str();
     }
 
-    Latite::getSettings().forEach([&](std::shared_ptr<Setting> set) {
+    Omoti::getSettings().forEach([&](std::shared_ptr<Setting> set) {
         if (set->name() == "language") {
             for (int i = 0; i < l10nData->getLanguages().size(); ++i) {
                 const std::shared_ptr<LocalizeData::Language>& lang = l10nData->getLanguages()[i];
@@ -887,7 +893,7 @@ void Latite::detectLanguage() {
     });
 }
 
-void Latite::onUpdate(Event& evGeneric) {
+void Omoti::onUpdate(Event& evGeneric) {
     auto& ev = reinterpret_cast<UpdateEvent&>(evGeneric);
     timings.update();
     auto now = std::chrono::system_clock::now();
@@ -901,7 +907,7 @@ void Latite::onUpdate(Event& evGeneric) {
 
     auto rak = SDK::RakNetConnector::get();
 
-    if (!rak || rak->ipAddress.empty()) {
+    if (!kMusicOnlyLiteMode && (!rak || rak->ipAddress.empty())) {
         //updateModuleBlocking();
         getModuleManager().forEach([](std::shared_ptr<Module> mod) {
             mod->setBlocked(false);
@@ -915,24 +921,53 @@ void Latite::onUpdate(Event& evGeneric) {
         SetCursorPos(r.left + r.right / 2, r.top + r.bottom / 2);
     }
 
-    latiteUsers = latiteUsersDirty;
+    this->OmotiUsers = this->OmotiUsersDirty;
 
     if (!hasInit) {
         threadsafeInit();
         hasInit = true;
     }
+
+    // Compatibility input fallback:
+    // If another DLL takes over window key handling, still emit key transitions
+    // for critical client keys (menu/eject) from async polling.
+    {
+        static std::array<bool, 256> polledKeyDown = {};
+        auto gameCore = SDK::GameCore::get();
+        if (gameCore && gameCore->hwnd) {
+            HWND fg = GetForegroundWindow();
+            bool windowFocused = !fg || fg == gameCore->hwnd || IsChild(gameCore->hwnd, fg) || IsChild(fg, gameCore->hwnd);
+            if (windowFocused) {
+                auto emitIfChanged = [&](int vk) {
+                    if (vk <= 0 || vk >= 256) return;
+                    bool down = (GetAsyncKeyState(vk) & 0x8000) != 0;
+                    if (polledKeyDown[static_cast<size_t>(vk)] == down) return;
+                    polledKeyDown[static_cast<size_t>(vk)] = down;
+                    KeyUpdateEvent keyEv{ vk, down };
+                    Omoti::getEventing().dispatch(keyEv);
+                };
+
+                emitIfChanged(std::get<KeyValue>(menuKey));
+                emitIfChanged(std::get<KeyValue>(ejectKey));
+                emitIfChanged(VK_ESCAPE);
+            }
+        }
+    }
+
     getKeyboard().findTextInput();
-    Latite::getPluginManager().runScriptingOperations();
+    if (!kMusicOnlyLiteMode) {
+        Omoti::getPluginManager().runScriptingOperations();
+    }
 
     static bool lastDX11 = std::get<BoolValue>(this->useDX11);
     if (std::get<BoolValue>(useDX11) != lastDX11) {
 
         if (lastDX11) {
-            Latite::getClientMessageQueue().display(
+            Omoti::getClientMessageQueue().display(
                 util::WFormat(LocalizeString::get("client.settings.dx11EnabledMsg.name")));
         }
         else {
-            Latite::getRenderer().setShouldReinit();
+            Omoti::getRenderer().setShouldReinit();
         }
         lastDX11 = std::get<BoolValue>(useDX11);
     }
@@ -943,7 +978,7 @@ void Latite::onUpdate(Event& evGeneric) {
     }
 }
 
-void Latite::onKey(Event& evGeneric) {
+void Omoti::onKey(Event& evGeneric) {
     auto& ev = reinterpret_cast<KeyUpdateEvent&>(evGeneric);
     if (ev.getKey() == std::get<KeyValue>(ejectKey) && ev.isDown()) {
         this->queueEject();
@@ -962,12 +997,12 @@ void Latite::onKey(Event& evGeneric) {
     }
 }
 
-void Latite::onClick(Event& evGeneric) {
+void Omoti::onClick(Event& evGeneric) {
     auto& ev = reinterpret_cast<ClickEvent&>(evGeneric);
     timings.onClick(ev.getMouseButton(), ev.isDown());
 }
 
-void Latite::onChar(Event& evGeneric) {
+void Omoti::onChar(Event& evGeneric) {
     auto& ev = reinterpret_cast<CharEvent&>(evGeneric);
     for (auto tb : textBoxes) {
         if (tb->isSelected()) {
@@ -995,7 +1030,8 @@ void Latite::onChar(Event& evGeneric) {
     }
 }
 
-void Latite::onRendererInit(Event&) {
+void Omoti::onRendererInit(Event&) {
+    // Music GUI still depends on texture assets (button icons), so always load them.
     getAssets().unloadAll(); // should be safe even if we didn't load resources yet
     getAssets().loadAll();
 
@@ -1010,29 +1046,29 @@ void Latite::onRendererInit(Event&) {
     getRenderer().getDeviceContext()->CreateBitmapBrush(hudBlurBitmap.Get(), this->hudBlurBrush.GetAddressOf());
 }
 
-void Latite::onRendererCleanup(Event& ev) {
+void Omoti::onRendererCleanup(Event& ev) {
     this->hudBlurBitmap = nullptr;
     this->gaussianBlurEffect = nullptr;
     this->hudBlurBrush = nullptr;
 }
 
 
-void Latite::onSuspended(Event& ev) {
-    Latite::getConfigManager().saveCurrentConfig();
+void Omoti::onSuspended(Event& ev) {
+    Omoti::getConfigManager().saveCurrentConfig();
     Logger::Info(XOR_STRING("Saved config"));
 }
 
-void Latite::onBobView(Event& ev) {
+void Omoti::onBobView(Event& ev) {
     if (std::get<BoolValue>(this->minimalViewBob)) {
         reinterpret_cast<Cancellable&>(ev).setCancelled(true);
     }
 }
 
-void Latite::onLeaveGame(Event& ev) {
+void Omoti::onLeaveGame(Event& ev) {
     getRenderer().clearTextCache();
 }
 
-void Latite::onRenderLayer(Event& evG) {
+void Omoti::onRenderLayer(Event& evG) {
     auto& ev = reinterpret_cast<RenderLayerEvent&>(evG);
     while (!this->uiRenderQueue.empty()) {
         auto& latest = this->uiRenderQueue.front();
@@ -1041,7 +1077,7 @@ void Latite::onRenderLayer(Event& evG) {
     }
 }
 
-void Latite::onRenderOverlay(Event& evG) {
+void Omoti::onRenderOverlay(Event& evG) {
     auto& ev = reinterpret_cast<RenderOverlayEvent&>(evG);
 
     if (getRenderer().getFontFamily2() != std::get<TextValue>(secondaryFont).str) {
@@ -1057,20 +1093,21 @@ void Latite::onRenderOverlay(Event& evG) {
     static auto time = std::chrono::steady_clock::now();
     auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration_cast<std::chrono::seconds>(now - time) > 5s) {
-        Latite::writeServerIP();
+        Omoti::writeServerIP();
     }
 }
 
-void Latite::onPacketReceive(Event& evG) {
+void Omoti::onPacketReceive(Event& evG) {
     // disabled
     auto& ev = reinterpret_cast<PacketReceiveEvent&>(evG);
 }
 
-void Latite::onTick(Event& ev) {
+void Omoti::onTick(Event& ev) {
+    if (kMusicOnlyLiteMode) return;
     updateModuleBlocking();
 }
 
-void Latite::loadLanguageConfig(std::shared_ptr<Setting> languageSetting) {
+void Omoti::loadLanguageConfig(std::shared_ptr<Setting> languageSetting) {
     this->getSettings().forEach([&](std::shared_ptr<Setting> set) {
         if (set->name() == languageSetting->name()) {
             std::visit([&](auto&& obj) {
@@ -1081,7 +1118,7 @@ void Latite::loadLanguageConfig(std::shared_ptr<Setting> languageSetting) {
         });
 }
 
-void Latite::loadConfig(SettingGroup& gr) {
+void Omoti::loadConfig(SettingGroup& gr) {
     gr.forEach([&](std::shared_ptr<Setting> set) {
         this->getSettings().forEach([&](std::shared_ptr<Setting> modSet) {
             if (modSet->name() == set->name()) {
@@ -1094,9 +1131,9 @@ void Latite::loadConfig(SettingGroup& gr) {
         });
 }
 
-void Latite::writeServerIP() {
+void Omoti::writeServerIP() {
     std::string server;
-    std::filesystem::path serverIPTextPath = util::GetLatitePath() / XOR_STRING("serverip.txt");
+    std::filesystem::path serverIPTextPath = util::GetOmotiPath() / XOR_STRING("serverip.txt");
 
     SDK::RakNetConnector* connector = SDK::RakNetConnector::get();
     if (connector && !connector->dns.empty()) {

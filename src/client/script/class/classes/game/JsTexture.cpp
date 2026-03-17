@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "JsTexture.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 JsTexture::JsTexture(std::wstring const& textureNameOrPath, bool gameTexture) {
 	this->nameOrPath = textureNameOrPath;
@@ -11,11 +11,11 @@ JsTexture::JsTexture(std::wstring const& textureNameOrPath, bool gameTexture) {
 	if (gameTexture) return;
 
 	// FIXME: same as above
-	Latite::get().queueForDXRender([this, path](ID2D1DeviceContext* ctx) {
+	Omoti::get().queueForDXRender([this, path](ID2D1DeviceContext* ctx) {
 
 		ComPtr<IWICBitmapDecoder> pDecoder = NULL;
 
-		auto factory = Latite::getRenderer().getImagingFactory();
+		auto factory = Omoti::getRenderer().getImagingFactory();
 		// i love repeating code!!!!
 		auto res = factory->CreateDecoderFromFilename(
 			path.wstring().c_str(),
@@ -50,7 +50,7 @@ void JsTexture::loadMinecraft() {
 	mcTexture = SDK::TexturePtr{};
 	if (gameTexture) {
 		// FIXME: I sure hope this object doesn't get destroyed by the time this function calls
-		Latite::get().queueForUIRender([this](SDK::MinecraftUIRenderContext* ctx) {
+		Omoti::get().queueForUIRender([this](SDK::MinecraftUIRenderContext* ctx) {
 			ctx->getTexture(&this->mcTexture.value(), SDK::ResourceLocation(util::WStrToStr(nameOrPath), 0 /*0 = default minecraft texture*/), false /*not external*/);
 			});
 		return;
@@ -58,7 +58,7 @@ void JsTexture::loadMinecraft() {
 
 	auto path = this->tryGetRealPath(nameOrPath);
 	// FIXME: I sure hope this object doesn't get destroyed by the time this function calls
-	Latite::get().queueForUIRender([this, path](SDK::MinecraftUIRenderContext* ctx) {
+	Omoti::get().queueForUIRender([this, path](SDK::MinecraftUIRenderContext* ctx) {
 		ctx->getTexture(&this->mcTexture.value(), SDK::ResourceLocation(util::WStrToStr(path), 2 /*2 = external texture*/), true /*external*/);
 		});
 }

@@ -1,8 +1,11 @@
 #include "pch.h"
 #include "CommandManager.h"
 #include "util/logger.h"
-#include "client/latite.h"
+#include "client/Omoti.h"
 #include "client/misc/ClientMessageQueue.h"
+#include "client/screen/ScreenManager.h"
+#include "client/screen/screens/ClickGUI.h"
+#include "client/feature/setting/Setting.h"
 #include "util/Util.h"
 
 // Commands
@@ -17,7 +20,7 @@
 //
 
 CommandManager::CommandManager() {
-#if LATITE_DEBUG
+#if Omoti_DEBUG
 	this->items.push_back(std::make_shared<TestCommand>());
 #endif
 	this->items.push_back(std::make_shared<HelpCommand>());
@@ -26,7 +29,7 @@ CommandManager::CommandManager() {
 	this->items.push_back(std::make_shared<ScriptCommand>());
 	this->items.push_back(std::make_shared<SetPrefixCommand>());
 	this->items.push_back(std::make_shared<ConfigCommand>());
-#if LATITE_DEBUG
+#if Omoti_DEBUG
 	this->items.push_back(std::make_shared<SignCommand>());
 #endif
 }
@@ -89,6 +92,65 @@ bool CommandManager::runCommand(std::string const& line) {
 	
 	if (!newArgs.empty()) {
 		std::string label = util::ToLower(newArgs[0]);
+
+		if (label == "menu" || label == "musicgui" || label == "gui") {
+			auto active = Omoti::getScreenManager().getActiveScreen();
+			if (active.has_value() && active->get().getName() == "ClickGUI") {
+				Omoti::getScreenManager().exitCurrentScreen();
+			}
+			else {
+				Omoti::getScreenManager().showScreen<ClickGUI>(true);
+			}
+			return true;
+		}
+
+		if (label == "bind") {
+			if (newArgs.size() < 3) {
+				Omoti::getClientMessageQueue().push(util::Format("&cUsage: " + prefix + "bind menu <key>"));
+				return false;
+			}
+
+			std::string target = util::ToLower(newArgs[1]);
+			std::string keyArg = newArgs[2];
+			if (target != "menu" && target != "menukey") {
+				Omoti::getClientMessageQueue().push(util::Format("&cOnly 'menu' bind is supported."));
+				return false;
+			}
+
+			int vk = 0;
+			if (keyArg.size() == 1) {
+				char ch = keyArg[0];
+				if (ch >= 'a' && ch <= 'z') ch = static_cast<char>(ch - 32);
+				vk = static_cast<unsigned char>(ch);
+			}
+			else {
+				vk = util::StringToKey(keyArg);
+			}
+
+			if (vk <= 0 || vk >= 256) {
+				Omoti::getClientMessageQueue().push(util::Format("&cUnknown key: " + keyArg));
+				return false;
+			}
+
+			bool updated = false;
+			Omoti::getSettings().forEach([&](std::shared_ptr<Setting> set) {
+				if (set->name() != "menuKey") return;
+				*set->value = KeyValue(vk);
+				set->resolvedValue = KeyValue(vk);
+				set->update();
+				set->userUpdate();
+				updated = true;
+			});
+
+			if (!updated) {
+				Omoti::getClientMessageQueue().push(util::Format("&cFailed to update menu bind."));
+				return false;
+			}
+
+			Omoti::getClientMessageQueue().push(util::Format("&aMenu key set to &f" + util::KeyToString(vk)));
+			return true;
+		}
+
 		for (auto& cmd : this->items) {
 			for (std::string alias : cmd->getAliases()) {
 				if (alias == label /*label*/) {
@@ -107,13 +169,13 @@ bool CommandManager::runCommand(std::string const& line) {
 								pos += strlen("$");
 							}
 
-							Latite::getClientMessageQueue().push(util::Format("&cUsage: " + usage));
+							Omoti::getClientMessageQueue().push(util::Format("&cUsage: " + usage));
 						}
 						return result;
 					}
 					catch (std::exception& e) {
 						Logger::Warn("An unhandled exception occured while running this command: {}", e.what());
-						Latite::getClientMessageQueue().push(util::Format(std::string("&cAn unhandled exception occured while running this command: ") + e.what()));
+						Omoti::getClientMessageQueue().push(util::Format(std::string("&cAn unhandled exception occured while running this command: ") + e.what()));
 						return false;
 					}
 				}
@@ -125,6 +187,6 @@ bool CommandManager::runCommand(std::string const& line) {
 		return false;
 	}
 
-	Latite::getClientMessageQueue().push(util::Format("&cUnknown command: " + (newArgs.empty() ? "" : newArgs[0]) + "."));
+	Omoti::getClientMessageQueue().push(util::Format("&cUnknown command: " + (newArgs.empty() ? "" : newArgs[0]) + "."));
 	return false;
 }

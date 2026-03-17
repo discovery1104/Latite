@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by LatiteRewrite.rc
+// Used by OmotiRewrite.rc
 
 // Next default values for new objects
 // 
@@ -26,7 +26,7 @@
 #define ICON_LOGOWHITE 246
 #define ICON_DOCUMENT 245
 
-#define JS_LATITEAPI 100
+#define JS_OmotiAPI 100
 
 #define LANG_EN_US 101
 #define LANG_ES_ES 102

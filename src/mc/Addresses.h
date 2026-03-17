@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 #define API_NAMES
 #endif
 
@@ -323,4 +323,4 @@ public:
 		"BaseActorRenderer_renderText" };
 };
 
-// after adding sigs here, add them in latite.cpp
+// after adding sigs here, add them in Omoti.cpp

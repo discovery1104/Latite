@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "../../resource/Resource.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/render/Renderer.h"
 #include "client/render/asset/Assets.h"
 #include "../../resource/InitResources.h"
 
 Assets::Assets() :
-	latiteLogo(GET_RESOURCE(logo_png)),
+	OmotiLogo(GET_RESOURCE(logo_png)),
 	searchIcon(GET_RESOURCE(searchicon_png)),
 	arrowIcon(GET_RESOURCE(arrow_png)),
 	xIcon(GET_RESOURCE(x_png)),
@@ -14,12 +14,12 @@ Assets::Assets() :
 	arrowBackIcon(GET_RESOURCE(arrow_back_png)),
 	cogIcon(GET_RESOURCE(cog_png)),
 	checkmarkIcon(GET_RESOURCE(checkmark_png)),
-	logoWhite(GET_RESOURCE(latitewhite_png)),
+	logoWhite(GET_RESOURCE(Omotiwhite_png)),
 	document(GET_RESOURCE(document_png))
 
 {
 
-	allAssets.push_back(&this->latiteLogo);
+	allAssets.push_back(&this->OmotiLogo);
 	allAssets.push_back(&this->searchIcon);
 	allAssets.push_back(&this->arrowIcon);
 	allAssets.push_back(&this->xIcon);
@@ -33,7 +33,7 @@ Assets::Assets() :
 
 void Assets::loadAll() {
 	for (auto& asset : allAssets) {
-		asset->load(Latite::getRenderer().getImagingFactory(), Latite::getRenderer().getDeviceContext());
+		asset->load(Omoti::getRenderer().getImagingFactory(), Omoti::getRenderer().getDeviceContext());
 	}
 }
 

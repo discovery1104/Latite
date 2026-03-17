@@ -1,1 +1,1 @@
-﻿target_precompile_headers(Latite PRIVATE pch.h)
+﻿target_precompile_headers(Omoti PRIVATE pch.h)

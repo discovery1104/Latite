@@ -1,103 +1,85 @@
 ﻿cmake_minimum_required(VERSION 3.22)
 
-project(Latite)
-
-# Allow Nightly as a valid configuration
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo;MinSizeRel;Nightly" CACHE STRING "" FORCE)
-
-set(CMAKE_C_FLAGS_NIGHTLY "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-set(CMAKE_CXX_FLAGS_NIGHTLY "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_NIGHTLY "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-set(CMAKE_SHARED_LINKER_FLAGS_NIGHTLY "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" CACHE STRING "" FORCE)
+project(Omoti VERSION 1.0)
 
 if (NOT MSVC)
     message(FATAL_ERROR "Compiler unsupported, must use MSVC")
+endif ()
+
+# Setup build type macros
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DOmoti_DEBUG)
 endif()
 
-# Enable Hot Reload / debug info format for supported MSVC generators
+# Add all sources in src/* and deps/*
+file(GLOB_RECURSE Omoti_SRC CONFIGURE_DEPENDS
+        "src/*.h"
+        "src/*.cpp"
+
+        "deps/*.h"
+        "deps/*.cpp"
+)
+
+# Enable Hot Reload for MSVC compilers if supported
 if (POLICY CMP0141)
     cmake_policy(SET CMP0141 NEW)
     set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif ()
 
-# MSVC runtime
+# MSVC library release ABI compatibility with game
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
-# Add all sources in src/* and deps/*
-file(GLOB_RECURSE Latite_SRC CONFIGURE_DEPENDS
-        "src/*.h"
-        "src/*.cpp"
-        "deps/*.h"
-        "deps/*.cpp"
-)
-
 # Assets
+set(MINGW_LD
+    "C:/Users/DISBOY/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.MCF.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/ld.exe"
+    CACHE FILEPATH "Path to MinGW ld.exe for embedding binary assets")
+
 function(ADD_RESOURCES out_var)
     set(result)
-    foreach(in_f ${ARGN})
+    foreach (in_f ${ARGN})
         file(RELATIVE_PATH src_f ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
         set(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
-
-        add_custom_command(
-                OUTPUT ${out_f}
-                COMMAND ld.exe -r -b binary -o ${out_f} ${src_f}
+        add_custom_command(OUTPUT ${out_f}
+                COMMAND ${MINGW_LD} -r -b binary -o ${out_f} ${src_f}
                 DEPENDS ${in_f}
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                 COMMENT "Building object ${out_f}"
                 VERBATIM
         )
-
         list(APPEND result ${out_f})
     endforeach()
-
     set(${out_var} "${result}" PARENT_SCOPE)
 endfunction()
 
 # Add all files in assets/ as resources
-file(GLOB_RECURSE RESOURCE_FILES
-        RELATIVE ${CMAKE_CURRENT_LIST_DIR}
-        CONFIGURE_DEPENDS
-        "assets/*"
-)
 
+file(GLOB_RECURSE RESOURCE_FILES RELATIVE ${CMAKE_CURRENT_LIST_DIR} CONFIGURE_DEPENDS "assets/*")
 add_resources(EMBEDDED_RESOURCES ${RESOURCE_FILES})
 
-add_library(Latite SHARED
-        ${Latite_SRC}
-        ${EMBEDDED_RESOURCES}
-)
+add_library(Omoti SHARED ${Omoti_SRC} ${EMBEDDED_RESOURCES})
+add_custom_command(TARGET Omoti POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        -DSRC="$<TARGET_FILE:Omoti>"
+        -DOUTDIR="E:/latiteskid"
+        -DSERIES_MAJOR="2"
+        -DPATCH_WIDTH="3"
+        -DLATEST_NAME="latite.dll"
+        -P "${CMAKE_SOURCE_DIR}/cmake/CopyBuiltDll.cmake"
+        COMMENT "Copying Omoti DLL with auto-increment version to E:/latiteskid")
+
+# enable exceptions
+target_compile_options(Omoti PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,MSVC,Clang,AppleClang>:/EHsc>)
 
 # C++ standard
-set_property(TARGET Latite PROPERTY CXX_STANDARD 23)
-set_property(TARGET Latite PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET Omoti PROPERTY CXX_STANDARD 23)
 
-# Compile definitions
-target_compile_definitions(Latite PRIVATE
-        _UNICODE
-        UNICODE
-        _HAS_STATIC_RTTI=0
-
-        $<$<CONFIG:Debug>:LATITE_DEBUG>
-        $<$<CONFIG:Release>:LATITE_RELEASE>
-        $<$<CONFIG:RelWithDebInfo>:LATITE_RELEASE>
-        $<$<CONFIG:MinSizeRel>:LATITE_RELEASE>
-        $<$<CONFIG:Nightly>:LATITE_NIGHTLY>
-)
-
-# Compile options
-target_compile_options(Latite PRIVATE
-        /EHsc
-        /GR-
-        /W4
-)
-
-target_include_directories(Latite PRIVATE
-        src
-        deps
-)
+# Disable RTTI and set warning level
+add_definitions(/GR- /D_HAS_STATIC_RTTI=0 /W4 /MT)
+add_compile_definitions(_UNICODE UNICODE)
 
 # Link libraries
-target_link_libraries(Latite PRIVATE
+target_link_libraries(Omoti PRIVATE
         # WinRT
         WindowsApp.lib
         Shlwapi.lib
@@ -116,12 +98,19 @@ target_link_libraries(Latite PRIVATE
 
         # Text rendering
         dwrite
+        gdi32
 
         # ImageNtHeader for mnemosyne
         Dbghelp
 
         # PlaySound for scripting
         winmm
+        ole32
+)
+
+target_include_directories(Omoti PRIVATE
+        src
+        deps
 )
 
 add_subdirectory(src)

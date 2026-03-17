@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "TabList.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "../../../../render/asset/Assets.h"
 
 TabList::TabList() : Module("PlayerList", LocalizeString::get("client.module.tabList.name"),
@@ -44,7 +44,7 @@ void TabList::onRenderOverlay(Event& evG) {
 	for (auto& ent : *lvl->getPlayerList()) {
 		auto w = dc.getTextSize(util::StrToWStr(ent.second.name), font, textP).x + 3.f;
 		auto const& name = util::StrToWStr(ent.second.name);
-		for (auto& user : Latite::get().getLatiteUsers()) {
+		for (auto& user : Omoti::get().getOmotiUsers()) {
 			if (user == ent.second.name) {
 				w += logoPad + logoSize;
 			}
@@ -85,11 +85,11 @@ void TabList::onRenderOverlay(Event& evG) {
 	for (auto& ent : *lvl->getPlayerList()) {
 		auto const& name = util::StrToWStr(ent.second.name);
 		d2d::Rect rc = { x, y, x + longestText, y + sectionHeight };
-		for (auto& user : Latite::get().getLatiteUsers()) {
+		for (auto& user : Omoti::get().getOmotiUsers()) {
 			if (user == ent.second.name) {
 				rc.left += logoSize + logoPad;
 				d2d::Rect logoRc = { x, y, x + logoSize, y + logoSize };
-				dc.ctx->DrawBitmap(Latite::getAssets().logoWhite.getBitmap(), logoRc);
+				dc.ctx->DrawBitmap(Omoti::getAssets().logoWhite.getBitmap(), logoRc);
 			}
 		}
 

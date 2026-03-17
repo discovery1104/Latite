@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "FPSCounter.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 FPSCounter::FPSCounter() : TextModule("FPS", LocalizeString::get("client.textmodule.fpsCounter.name"),
                                       LocalizeString::get("client.textmodule.fpsCounter.desc"), HUD) {
@@ -9,6 +9,6 @@ FPSCounter::FPSCounter() : TextModule("FPS", LocalizeString::get("client.textmod
 
 std::wstringstream FPSCounter::text(bool isDefault, bool inEditor) {
 	std::wstringstream wss;
-	wss << Latite::get().getTimings().getFPS();
+	wss << Omoti::get().getTimings().getFPS();
 	return wss;
 }

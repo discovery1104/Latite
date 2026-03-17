@@ -69,7 +69,7 @@ using nlohmann::json;
 #include "client/misc/Timings.h"
 #include "client/misc/ClientMessageQueue.h"
 #include "client/event/Events.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 #include "client/event/Event.h"
 #include "client/event/Listener.h"

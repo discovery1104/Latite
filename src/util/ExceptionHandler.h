@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <eh.h>
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 
 // A custom exception class to wrap SEH exceptions
 class StructuredException {

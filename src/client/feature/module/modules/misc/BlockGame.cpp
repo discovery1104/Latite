@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "BlockGame.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "../../../../render/asset/Assets.h"
 #include "client/input/Keyboard.h"
 
@@ -291,7 +291,7 @@ void BlockGame::onRenderOverlay(Event& evG) {
     updateGameLogic(now);
 
     D2DUtil dc;
-    auto [screenWidth, screenHeight] = Latite::getRenderer().getScreenSize();
+    auto [screenWidth, screenHeight] = Omoti::getRenderer().getScreenSize();
 
     // I HATE SIZE CALCULATIONS!!! I HATE THIS!!! I SPENT HOURS ON THIS!!!!
     const float baseBlockSize = screenHeight * 0.035f;
@@ -1212,7 +1212,7 @@ void BlockGame::onRenderHUDModules(Event& evGeneric) {
 }
 
 bool BlockGame::isKeyDown(int vkCode) {
-    return Latite::getKeyboard().isKeyDown(vkCode);
+    return Omoti::getKeyboard().isKeyDown(vkCode);
 }
 
 void BlockGame::playSound(const std::string& soundId) {

@@ -12,6 +12,7 @@ namespace Logger {
     };
 
 	extern void Setup();
+    extern void SetupConsole();
 
     extern std::filesystem::path GetLogPath();
     extern void LogInternal(Level level, std::string str);
@@ -34,7 +35,7 @@ namespace Logger {
         LogInternal(Level::Fatal, fm);
     }
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
     void LogExceptionDetails(StructuredException& ex);
     void LogExceptionDetails(const std::exception& e);
 #endif

@@ -1,4 +1,4 @@
-name: Latite Nightly
+name: Omoti Nightly
 
 on:
   push:
@@ -7,21 +7,21 @@ on:
       - "**.cpp"
       - "**.h"
       - "**.hpp"
-      - "**CMakeLists.txt"
-      - "**.cmake"
+      - "**.vcxproj"
+      - "**.sln"
   pull_request:
     branches: ["master"]
     paths:
       - "**.cpp"
       - "**.h"
       - "**.hpp"
-      - "**CMakeLists.txt"
-      - "**.cmake"
+      - "**.vcxproj"
+      - "**.sln"
   workflow_dispatch:
 
 env:
+  SOLUTION_FILE_PATH: OmotiRewrite.vcxproj
   BUILD_CONFIGURATION: Nightly
-  BUILD_DIR: cmake-build-nightly
 
 permissions:
   contents: write
@@ -33,36 +33,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Provides environment variables for MSVC-compatible linking
-      - name: Set up MSVC Developer Environment
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
 
-      # Install Ninja (GitHub Windows runner already has it, but we ensure fresh install)
-      - name: Install Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v3
-
-      # Configure using Ninja + clang-cl
-      - name: Configure CMake (clang-cl + Ninja)
+      - name: Build Omoti Nightly
+        working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          $env:CC = "clang-cl"
-          $env:CXX = "clang-cl"
-          cmake -B ${{ env.BUILD_DIR }} -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_CONFIGURATION }} -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
-
-      # Build using Ninja
-      - name: Build with Ninja
-        run: |
-          cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_CONFIGURATION }}
-
-      # Rename DLL
-      - name: Rename DLL
-        shell: pwsh
-        run: |
-          $dll = "${{ github.workspace }}\${{ env.BUILD_DIR }}\Latite.dll"
-
-          if (Test-Path $dll) {
-            Rename-Item -Path $dll -NewName "LatiteNightly.dll" -Force
+          msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=x64 /p:OutDir="${{ github.workspace }}\\x64\\${{env.BUILD_CONFIGURATION}}\\" ${{env.SOLUTION_FILE_PATH}}
+          if (Test-Path "${{ github.workspace }}\x64\Nightly\OmotiRewrite.dll") {
+            Rename-Item -Path "${{ github.workspace }}\x64\Nightly\OmotiRewrite.dll" -NewName "OmotiNightly.dll"
           } else {
-            Write-Error "Latite.dll not found"
+            Write-Error "OmotiRewrite.dll not found in Nightly build output"
             exit 1
           }
 
@@ -76,18 +57,19 @@ jobs:
         uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: nightly-${{ env.TIMESTAMP }}
-          name: Latite Nightly ${{ env.TIMESTAMP }}
+          name: Omoti Nightly ${{ env.TIMESTAMP }}
           body: |
-            ### This is an automated, archived experimental DLL build of Latite Client.
+            ### This is an automated, archived experimental DLL build of Omoti Client.
 
             Built at: ${{ env.TIMESTAMP }} UTC
 
             Includes:
-            - Nightly build (LatiteNightly.dll)
+            - Nightly build (OmotiNightly.dll)
+
+            Note: This is a snapshot with a unique tag for history.
           prerelease: true
           generate_release_notes: false
-          files: |
-            ${{ github.workspace }}/cmake-build-nightly/LatiteNightly.dll
+          files: ${{ github.workspace }}/x64/Nightly/OmotiNightly.dll
 
       - name: Recreate nightly release to refresh date
         shell: bash
@@ -101,15 +83,11 @@ jobs:
         uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: nightly
-          name: Latite Nightly
+          name: Omoti Nightly
           body: |
-            ### This is an automated, experimental DLL build of Latite Client.
+            ### This is an automated, experimental DLL build of Omoti Client.
 
             **This release has a high chance of containing bugs or crashes.**
-
-            Includes:
-            - Nightly build (LatiteNightly.dll)
           prerelease: true
           make_latest: true
-          files: |
-            ${{ github.workspace }}/cmake-build-nightly/LatiteNightly.dll
+          files: ${{ github.workspace }}/x64/Nightly/OmotiNightly.dll

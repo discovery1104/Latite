@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "GeneralHooks.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/misc/ClientMessageQueue.h"
 #include "client/feature/command/commandmanager.h"
 #include "client/event/Eventing.h"
@@ -9,8 +9,11 @@
 #include "PlayerHooks.h"
 #include "client/screen/ScreenManager.h"
 #include "mc/common/client/game/MouseInputPacket.h"
+#include "mc/common/client/game/GameCore.h"
+#include <array>
 
 namespace {
+	static constexpr bool kCompatDisableWndProcHook = true;
 	std::shared_ptr<Hook> Level_tickHook;
 	std::shared_ptr<Hook> ChatScreenController_sendChatMesageHook;
 	std::shared_ptr<Hook> GameRenderer_renderCurrentFrameHook;
@@ -37,97 +40,52 @@ namespace {
 	std::shared_ptr<Hook> OnUriHook;
 	std::shared_ptr<Hook> GrabCursorHook;
 	std::shared_ptr<Hook> BaseActorRenderer_renderTextHook;
-}
+	std::array<bool, 256> gKeyStateMirror = {};
 
-void GenericHooks::Level_tick(SDK::Level* level) {
-	if (level == SDK::ClientInstance::get()->minecraft->getLevel()) {
-		// Clientside level
-		// dispatch clientside tick event..
-		TickEvent ev(level);
-		Latite::getEventing().dispatch(ev);
-		Latite::getClientMessageQueue().doPrint(100);
-
-		PluginManager::Event sEv{L"world-tick", {}, false};
-		Latite::getPluginManager().dispatchEvent(sEv);
-	}
-	Level_tickHook->oFunc<decltype(&Level_tick)>()(level);
-}
-
-void* GenericHooks::ChatScreenController_sendChatMessage(void* controller, std::string& message) {
-	if (message.starts_with(Latite::getCommandManager().prefix)) {
-		Latite::getCommandManager().runCommand(message);
-		return 0;
+	bool isModalScreenActive() {
+		return Omoti::getScreenManager().getActiveScreen().has_value();
 	}
 
-	ChatEvent ev{ message };
-	if (Eventing::get().dispatch(ev)) return nullptr;
-
-	{
-		PluginManager::Event::Value val{L"message"};
-		val.val = util::StrToWStr(message);
-		PluginManager::Event sev{L"send-chat", { val }, true};
-		if (Latite::getPluginManager().dispatchEvent(sev)) return nullptr;
-	}
-
-	return ChatScreenController_sendChatMesageHook->oFunc<decltype(&ChatScreenController_sendChatMessage)>()(controller, message);
-}
-
-void* GenericHooks::GameRenderer_renderCurrentFrame(void* rend) {
-	// this causes the jitter bug
-	//{
-	//	RenderGameEvent ev{};
-	//	Eventing::get().dispatchEvent(ev);
-	//}
-
-	return GameRenderer_renderCurrentFrameHook->oFunc<decltype(&GameRenderer_renderCurrentFrame)>()(rend);
-}
-
-LRESULT GenericHooks::MainWindow__windowProcCallback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) { // Name from China
-	if (msg == WM_KEYDOWN || msg == WM_KEYUP) {
-		const int key = wParam & 0xFF;
-		const bool isDown = msg == WM_KEYDOWN;
-
-		{
-			PluginManager::Event::Value val{L"isDown"};
-			val.val = isDown;
-
-			PluginManager::Event::Value val3{L"keyCode"};
-			val3.val = static_cast<double>(key);
-
-			PluginManager::Event::Value val2{L"keyAsChar"};
-
-			std::string str = "";
-			if (key > 31 && key < 128) {
-				str = (char)key;
-			}
-			val2.val = util::StrToWStr(str);
-
-			PluginManager::Event sEv{L"key-press", { val, val2, val3 }, true};
-			if (Latite::getPluginManager().dispatchEvent(sEv)) return DefWindowProcW(hwnd, msg, wParam, lParam);
+	bool translateMouseMessage(UINT msg, WPARAM wParam, int& outButton, char& outState) {
+		switch (msg) {
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+			outButton = 1;
+			outState = 1;
+			return true;
+		case WM_LBUTTONUP:
+			outButton = 1;
+			outState = 0;
+			return true;
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+		case WM_RBUTTONDBLCLK:
+			outButton = 2;
+			outState = (msg == WM_RBUTTONUP) ? 0 : 1;
+			return true;
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+		case WM_MBUTTONDBLCLK:
+			outButton = 3;
+			outState = (msg == WM_MBUTTONUP) ? 0 : 1;
+			return true;
+		case WM_MOUSEWHEEL:
+			outButton = 4;
+			outState = static_cast<char>(std::clamp(static_cast<int>(GET_WHEEL_DELTA_WPARAM(wParam)), -127, 127));
+			return true;
+		default:
+			return false;
 		}
-
-		KeyUpdateEvent ev{ key, isDown };
-		if (Eventing::get().dispatch(ev)) return DefWindowProcW(hwnd, msg, wParam, lParam);
 	}
 
-	return MainWindow__windowProcCallbackHook->oFunc<decltype(&MainWindow__windowProcCallback)>()(hwnd, msg, wParam, lParam);
-}
-
-bool GenericHooks::GameCore_handleMouseInput(void* a1, void* a2, void* a3) { // Made up name
-	const auto res = GameCore_handleMouseInputHook->oFunc<decltype(&GameCore_handleMouseInput)>()(a1, a2, a3);
-
-	static auto mouseInputVector = reinterpret_cast<std::vector<MouseInputPacket>*>(Signatures::MouseInputVector.result);
-
-	for (size_t i = 0; i < mouseInputVector->size(); i++) { // This method sucks so fucking bad, but gets the job done
-		auto& start = mouseInputVector->at(i);
-		auto it = std::next(mouseInputVector->begin(), i);
-
-		const auto button = start.type;
-		const auto state = start.state;
+	bool dispatchMouseInputEvent(int button, char state) {
+		bool cancelled = false;
+		if (!isModalScreenActive()) {
+			return false;
+		}
 
 		if (button > 0) {
 			Vec2& mousePos = SDK::ClientInstance::get()->cursorPos;
-
 			std::vector<PluginManager::Event::Value> values;
 
 			PluginManager::Event::Value val{L"mouseX"};
@@ -148,21 +106,180 @@ bool GenericHooks::GameCore_handleMouseInput(void* a1, void* a2, void* a3) { // 
 			values.push_back(val4);
 
 			if (button == 4) {
-				PluginManager::Event::Value wheel{ L"wheelDelta" };
+				PluginManager::Event::Value wheel{L"wheelDelta"};
 				wheel.val = static_cast<double>(state);
 				values.push_back(wheel);
 			}
 
 			PluginManager::Event ev{L"click", values, true};
-			if (Latite::getPluginManager().dispatchEvent(ev)) {
-				mouseInputVector->erase(it);
-				continue;
-			}
+			cancelled = Omoti::getPluginManager().dispatchEvent(ev);
 		}
 
-		ClickEvent ev{ button, static_cast<char>(state) };
-		if (Eventing::get().dispatch(ev))
-			mouseInputVector->erase(it);
+		if (!cancelled) {
+			ClickEvent ev{ button, state };
+			cancelled = Eventing::get().dispatch(ev);
+		}
+
+		return cancelled;
+	}
+
+	void clearPendingMousePackets() {
+		static auto mouseInputVector = reinterpret_cast<std::vector<MouseInputPacket>*>(Signatures::MouseInputVector.result);
+		if (!mouseInputVector) return;
+		mouseInputVector->clear();
+	}
+
+	void suppressMoveInput(SDK::MoveInputComponent* hand) {
+		if (!hand) return;
+		*hand = {};
+	}
+
+	void dispatchAndConsumeMousePackets(bool eraseCancelled) {
+		static auto mouseInputVector = reinterpret_cast<std::vector<MouseInputPacket>*>(Signatures::MouseInputVector.result);
+		if (!mouseInputVector) return;
+
+		for (size_t i = 0; i < mouseInputVector->size();) {
+			auto start = mouseInputVector->at(i);
+			const auto button = start.type;
+			const auto state = start.state;
+			bool cancelled = false;
+
+			cancelled = dispatchMouseInputEvent(button, static_cast<char>(state));
+
+			if (cancelled && eraseCancelled) {
+				mouseInputVector->erase(mouseInputVector->begin() + static_cast<ptrdiff_t>(i));
+				continue;
+			}
+
+			++i;
+		}
+	}
+
+	void dispatchPolledKeyboardFallback() {
+		SDK::GameCore* gameCore = SDK::GameCore::get();
+		if (!gameCore || !gameCore->hwnd) return;
+		HWND fg = GetForegroundWindow();
+		if (fg && fg != gameCore->hwnd && !IsChild(gameCore->hwnd, fg) && !IsChild(fg, gameCore->hwnd)) return;
+
+		for (int vk = 1; vk < 256; vk++) {
+			const bool isDown = (GetAsyncKeyState(vk) & 0x8000) != 0;
+			if (gKeyStateMirror[static_cast<size_t>(vk)] == isDown) continue;
+
+			gKeyStateMirror[static_cast<size_t>(vk)] = isDown;
+			KeyUpdateEvent ev{ vk, isDown };
+			Eventing::get().dispatch(ev);
+		}
+	}
+}
+
+void GenericHooks::Level_tick(SDK::Level* level) {
+	if (level == SDK::ClientInstance::get()->minecraft->getLevel()) {
+		// Clientside level
+		// dispatch clientside tick event..
+		TickEvent ev(level);
+		Omoti::getEventing().dispatch(ev);
+		Omoti::getClientMessageQueue().doPrint(100);
+
+		PluginManager::Event sEv{L"world-tick", {}, false};
+		Omoti::getPluginManager().dispatchEvent(sEv);
+		dispatchPolledKeyboardFallback();
+	}
+	Level_tickHook->oFunc<decltype(&Level_tick)>()(level);
+}
+
+void* GenericHooks::ChatScreenController_sendChatMessage(void* controller, std::string& message) {
+	if (message.starts_with(Omoti::getCommandManager().prefix)) {
+		Omoti::getCommandManager().runCommand(message);
+		return 0;
+	}
+
+	ChatEvent ev{ message };
+	if (Eventing::get().dispatch(ev)) return nullptr;
+
+	{
+		PluginManager::Event::Value val{L"message"};
+		val.val = util::StrToWStr(message);
+		PluginManager::Event sev{L"send-chat", { val }, true};
+		if (Omoti::getPluginManager().dispatchEvent(sev)) return nullptr;
+	}
+
+	return ChatScreenController_sendChatMesageHook->oFunc<decltype(&ChatScreenController_sendChatMessage)>()(controller, message);
+}
+
+void* GenericHooks::GameRenderer_renderCurrentFrame(void* rend) {
+	// this causes the jitter bug
+	//{
+	//	RenderGameEvent ev{};
+	//	Eventing::get().dispatchEvent(ev);
+	//}
+
+	return GameRenderer_renderCurrentFrameHook->oFunc<decltype(&GameRenderer_renderCurrentFrame)>()(rend);
+}
+
+LRESULT GenericHooks::MainWindow__windowProcCallback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) { // Name from China
+	if (isModalScreenActive()) {
+		int button = 0;
+		char state = 0;
+		if (translateMouseMessage(msg, wParam, button, state)) {
+			dispatchMouseInputEvent(button, state);
+			return 0;
+		}
+	}
+
+	if (isModalScreenActive() && (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP || msg == WM_XBUTTONDBLCLK
+		|| msg == WM_MOUSEHWHEEL || msg == WM_NCLBUTTONDOWN || msg == WM_NCLBUTTONUP
+		|| msg == WM_NCRBUTTONDOWN || msg == WM_NCRBUTTONUP || msg == WM_NCMBUTTONDOWN
+		|| msg == WM_NCMBUTTONUP)) {
+		return 0;
+	}
+
+	if (msg == WM_KEYDOWN || msg == WM_KEYUP) {
+		const int key = wParam & 0xFF;
+		const bool isDown = msg == WM_KEYDOWN;
+		gKeyStateMirror[static_cast<size_t>(key)] = isDown;
+
+		{
+			PluginManager::Event::Value val{L"isDown"};
+			val.val = isDown;
+
+			PluginManager::Event::Value val3{L"keyCode"};
+			val3.val = static_cast<double>(key);
+
+			PluginManager::Event::Value val2{L"keyAsChar"};
+
+			std::string str = "";
+			if (key > 31 && key < 128) {
+				str = (char)key;
+			}
+			val2.val = util::StrToWStr(str);
+
+			PluginManager::Event sEv{L"key-press", { val, val2, val3 }, true};
+			if (Omoti::getPluginManager().dispatchEvent(sEv)) return DefWindowProcW(hwnd, msg, wParam, lParam);
+		}
+
+		KeyUpdateEvent ev{ key, isDown };
+		if (Eventing::get().dispatch(ev)) return DefWindowProcW(hwnd, msg, wParam, lParam);
+	}
+
+	return MainWindow__windowProcCallbackHook->oFunc<decltype(&MainWindow__windowProcCallback)>()(hwnd, msg, wParam, lParam);
+}
+
+bool GenericHooks::GameCore_handleMouseInput(void* a1, void* a2, void* a3) { // Made up name
+	const bool modalScreenActive = isModalScreenActive();
+	if (modalScreenActive) {
+		dispatchAndConsumeMousePackets(true);
+		clearPendingMousePackets();
+		if (auto clientInstance = SDK::ClientInstance::get()) {
+			if (auto localPlayer = clientInstance->getLocalPlayer()) {
+				suppressMoveInput(localPlayer->getMoveInputComponent());
+			}
+		}
+		return true;
+	}
+
+	const auto res = GameCore_handleMouseInputHook->oFunc<decltype(&GameCore_handleMouseInput)>()(a1, a2, a3);
+	if (!modalScreenActive) {
+		dispatchAndConsumeMousePackets(true);
 	}
 
 	return res;
@@ -170,7 +287,7 @@ bool GenericHooks::GameCore_handleMouseInput(void* a1, void* a2, void* a3) { // 
 
 BOOL __stdcall GenericHooks::hkLoadLibraryW(LPCWSTR lib) {
 	// prevent double injections
-#ifdef LATITE_BETA
+#ifdef Omoti_BETA
 	abort();
 #endif
 	return 0;
@@ -218,6 +335,10 @@ void __fastcall GenericHooks::LocalPlayer_applyTurnDelta(void* obj, Vec2& rot) {
 
 void __fastcall GenericHooks::MoveInputHandler_tick(void* obj, void* proxy) {
 	SDK::MoveInputComponent* hand = reinterpret_cast<SDK::MoveInputComponent*>(obj);
+	if (isModalScreenActive()) {
+		suppressMoveInput(hand);
+		return;
+	}
 	{
 		BeforeMoveEvent ev{ hand };
 		if (Eventing::get().dispatch(ev)) return;
@@ -230,15 +351,24 @@ void __fastcall GenericHooks::MoveInputHandler_tick(void* obj, void* proxy) {
 }
 
 void GenericHooks::ClientInputUpdateSystem_tickBaseInput(uintptr_t** a1, void* a2, uintptr_t* a3, uintptr_t a4, uintptr_t a5, uintptr_t a6, uintptr_t a7, uintptr_t a8, uintptr_t a9, uintptr_t a10, uintptr_t a11,
-	char a12,
-	char a13,
-	char a14) {
+char a12,
+char a13,
+char a14) {
 
-	SDK::MoveInputComponent* hand = SDK::ClientInstance::get()->getLocalPlayer()->getMoveInputComponent();
+	SDK::MoveInputComponent* hand = nullptr;
+	if (auto clientInstance = SDK::ClientInstance::get()) {
+		if (auto localPlayer = clientInstance->getLocalPlayer()) {
+			hand = localPlayer->getMoveInputComponent();
+		}
+	}
+	if (isModalScreenActive()) {
+		suppressMoveInput(hand);
+		return;
+	}
 	{
 		PluginManager::Event ev{ L"pre-move", {}, true };
 
-		if (Latite::getPluginManager().dispatchEvent(ev)) {
+		if (Omoti::getPluginManager().dispatchEvent(ev)) {
 			return;
 		}
 	}
@@ -257,7 +387,7 @@ void GenericHooks::ClientInputUpdateSystem_tickBaseInput(uintptr_t** a1, void* a
 	{
 		PluginManager::Event ev{ L"post-move", {}, false };
 
-		Latite::getPluginManager().dispatchEvent(ev);
+		Omoti::getPluginManager().dispatchEvent(ev);
 	}
 }
 
@@ -274,7 +404,7 @@ bool GenericHooks::Level_initialize(SDK::Level* obj, void* palette, void* settin
 	auto o = Level_initializeHook->oFunc<decltype(&Level_initialize)>()(obj, palette, settings, tickRange, experiments, a6);
 	if (obj->isClientSide()) {
 		PluginManager::Event ev{L"join-game", {}, false};
-		Latite::getPluginManager().dispatchEvent(ev);
+		Omoti::getPluginManager().dispatchEvent(ev);
 	}
 	return o;
 }
@@ -282,7 +412,7 @@ bool GenericHooks::Level_initialize(SDK::Level* obj, void* palette, void* settin
 void* GenericHooks::Level_startLeaveGame(SDK::Level* obj) {
 	if (obj->isClientSide()) {
 		PluginManager::Event ev{L"leave-game", {}, false};
-		Latite::getPluginManager().dispatchEvent(ev);
+		Omoti::getPluginManager().dispatchEvent(ev);
 	}
 
 	LeaveGameEvent ev{};
@@ -386,14 +516,14 @@ void GenericHooks::hkOnUri(void* obj, void* pUri) {
 
 	ActivationUri* uri = reinterpret_cast<ActivationUri*>(pUri);
 
-	if (uri->verb == "addlatiteplugin") {
+	if (uri->verb == "addOmotiplugin") {
 		auto pluginName = uri->arguments.find("id");
 
 		if (pluginName != uri->arguments.end()) {
-			Latite::getNotifications().push(L"Installing plugin " + util::StrToWStr(pluginName->second));
-			auto result = Latite::getPluginManager().installScript(pluginName->second);
+			Omoti::getNotifications().push(L"Installing plugin " + util::StrToWStr(pluginName->second));
+			auto result = Omoti::getPluginManager().installScript(pluginName->second);
 			if (!result.has_value()) {
-				Latite::getNotifications().push(util::StrToWStr(result.error()));
+				Omoti::getNotifications().push(util::StrToWStr(result.error()));
 			}
 		}
 		return;
@@ -403,7 +533,7 @@ void GenericHooks::hkOnUri(void* obj, void* pUri) {
 }
 
 void GenericHooks::hkGrabCursor(SDK::ClientInstance* obj) {
-	if (Latite::get().getScreenManager().getActiveScreen()) return;
+	if (Omoti::get().getScreenManager().getActiveScreen()) return;
 	GrabCursorHook->oFunc<decltype(&hkGrabCursor)>()(obj);
 }
 
@@ -423,7 +553,6 @@ GenericHooks::GenericHooks() : HookGroup("General") {
 	//LoadLibraryAHook = addHook(reinterpret_cast<uintptr_t>(&::LoadLibraryW), hkLoadLibraryW);
 	//LoadLibraryWHook = addHook(reinterpret_cast<uintptr_t>(&::LoadLibraryA), hkLoadLibraryW);
 
-
 	Level_tickHook = addHook(Signatures::Level_tick.result,
 		Level_tick, "Level::tick");
 
@@ -433,7 +562,11 @@ GenericHooks::GenericHooks() : HookGroup("General") {
 	//GameRenderer_renderCurrentFrameHook = addHook(Signatures::GameRenderer__renderCurrentFrame.result,
 	//	GameRenderer_renderCurrentFrame, "GameRenderer::_renderCurrentFrame");
 
-	MainWindow__windowProcCallbackHook = addHook(Signatures::MainWindow__windowProcCallback.result, MainWindow__windowProcCallback, "MainWindow::_windowProcCallback");
+	if (!kCompatDisableWndProcHook) {
+		MainWindow__windowProcCallbackHook = addHook(Signatures::MainWindow__windowProcCallback.result, MainWindow__windowProcCallback, "MainWindow::_windowProcCallback");
+	} else {
+		Logger::Info("GeneralHooks: compatibility mode enabled (WndProc hook disabled)");
+	}
 
 	GameCore_handleMouseInputHook = addHook(Signatures::GameCore_handleMouseInput.result, GameCore_handleMouseInput, "GameCore::handleMouseInput");
 
@@ -468,4 +601,3 @@ GenericHooks::GenericHooks() : HookGroup("General") {
 	GrabCursorHook = addHook(Signatures::ClientInstance_grabCursor.result, hkGrabCursor, "`ClientInstance::grabCursor");
 	BaseActorRenderer_renderTextHook = addHook(Signatures::BaseActorRenderer_renderText.result, hkBaseActorRenderer_renderText, "BaseActorRenderer::renderText");
 }
-

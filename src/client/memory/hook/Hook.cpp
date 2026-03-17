@@ -5,7 +5,7 @@
 #include "vhook/vtable_hook.h"
 
 Hook::Hook(uintptr_t target, void* detour, std::string const& hookName, bool tableSwap)
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 	: funcName(hookName)
 #endif
 {
@@ -13,7 +13,7 @@ Hook::Hook(uintptr_t target, void* detour, std::string const& hookName, bool tab
 	if (tableSwap) {
 		auto res = vh::hook(reinterpret_cast<LPVOID*>(target), detour, &this->funcPtr);
 		if (res != 0) {
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 			Logger::Warn("Creation of hook {} failed with status {}", this->funcName, vh::status_to_string(res));
 #endif
 		}
@@ -22,14 +22,14 @@ Hook::Hook(uintptr_t target, void* detour, std::string const& hookName, bool tab
 
 	MH_STATUS res = MH_CreateHook(reinterpret_cast<LPVOID>(target), detour, &this->funcPtr);
 	if (res != MH_OK) {
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 		Logger::Warn("Creation of hook {} failed with status {}", this->funcName, MH_StatusToString(res));
 #endif
 	}
 }
 
 HookGroup::HookGroup(std::string const& groupName) 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 	: groupName(groupName)
 #else
 	// hopefully the name gets optimized away
@@ -39,7 +39,7 @@ HookGroup::HookGroup(std::string const& groupName)
 }
 
 std::shared_ptr<Hook> HookGroup::addHook(uintptr_t ptr, func_ptr_t detour, const char* name) {
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 	auto newHook = std::make_shared<Hook>(ptr, detour, name);
 #else
 	auto newHook = std::make_shared<Hook>(ptr, detour, "");
@@ -49,7 +49,7 @@ std::shared_ptr<Hook> HookGroup::addHook(uintptr_t ptr, func_ptr_t detour, const
 }
 
 std::shared_ptr<Hook> HookGroup::addTableSwapHook(uintptr_t ptr, func_ptr_t detour, const char* name) {
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 	auto newHook = std::make_shared<Hook>(ptr, detour, name, true);
 #else
 	auto newHook = std::make_shared<Hook>(ptr, detour, "", true);

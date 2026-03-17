@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "ScreenManager.h"
 #include "screens/ClickGUI.h"
-#include "screens/HUDEditor.h"
 #include "mc/common/client/game/ClientInstance.h"
 #include "client/event/events/KeyUpdateEvent.h"
+#include "util/Logger.h"
 
 ScreenManager::ScreenManager() {
-	Eventing::get().listen<KeyUpdateEvent, &ScreenManager::onKey>(this);
+	Eventing::get().listen<KeyUpdateEvent, &ScreenManager::onKey>(this, 200);
 	Eventing::get().listen<FocusLostEvent, &ScreenManager::onFocusLost>(this);
 }
 
@@ -20,7 +20,25 @@ void ScreenManager::exitCurrentScreen() {
 }
 
 void ScreenManager::onKey(KeyUpdateEvent& ev) {
-	if (ev.isDown() && ev.getKey() == VK_ESCAPE && getActiveScreen()) {
+	const int key = ev.getKey();
+	const bool keyTracked = key >= 0 && key < static_cast<int>(toggleKeysHeld.size());
+
+	if (!ev.isDown()) {
+		if (keyTracked) toggleKeysHeld[key] = false;
+		return;
+	}
+
+	const bool wasHeld = keyTracked && toggleKeysHeld[key];
+	if (wasHeld) {
+		if (key == VK_ESCAPE || getActiveScreen()) {
+			ev.setCancelled(true);
+		}
+		return;
+	}
+
+	if (ev.getKey() == VK_ESCAPE && getActiveScreen()) {
+		if (keyTracked) toggleKeysHeld[key] = true;
+		Logger::Info("ScreenManager: closing active screen with ESC");
 		exitCurrentScreen();
 		ev.setCancelled(true);
 		return;
@@ -33,12 +51,16 @@ void ScreenManager::onKey(KeyUpdateEvent& ev) {
 
 	if (associatedScreen && ev.isDown()
 		&& (!ev.inUI() || getActiveScreen())) {
+		if (keyTracked) toggleKeysHeld[key] = true;
+		Logger::Info("ScreenManager: key {} matched screen toggle", ev.getKey());
 		if (getActiveScreen())
 			exitCurrentScreen();
 		else {
+			Logger::Info("ScreenManager: enabling screen");
 			this->activeScreen = associatedScreen;
 			associatedScreen->get().setActive(true);
 			associatedScreen->get().onEnable(false);
+			Logger::Info("ScreenManager: screen enabled");
 		}
 		ev.setCancelled(true);
 		return;
@@ -46,6 +68,7 @@ void ScreenManager::onKey(KeyUpdateEvent& ev) {
 }
 
 void ScreenManager::onFocusLost(FocusLostEvent& ev) {
+	toggleKeysHeld.fill(false);
 	if (getActiveScreen()) {
 		ev.setCancelled(true);
 	}

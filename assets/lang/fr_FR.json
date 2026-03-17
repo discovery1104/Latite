@@ -1,7 +1,7 @@
 {
   "name": "Français (France)",
   "translations": {
-    "client.intro.welcome": "Bienvenue sur le client Latite !",
+    "client.intro.welcome": "Bienvenue sur le client Omoti !",
     "client.intro.menubutton": "Appuyez sur {} dans un monde ou un serveur pour ouvrir le menu des modules.",
     "client.settings.menuKey.name": "Touche pour ouvrir le menu",
     "client.settings.ejectKey.name": "Touche pour éjecter le client",
@@ -431,7 +431,7 @@
     "client.module.autoGG.customMessage.desc": "Le message personnalisé à envoyer",
     "client.commands.help.desc": "Affiche toutes les commandes et leurs descriptions.",
     "client.commands.eject.ejectMsg.name": "Le client a été éjecté.",
-    "client.commands.eject.desc": "Retirer Latite du jeu (revenir en vanilla).",
+    "client.commands.eject.desc": "Retirer Omoti du jeu (revenir en vanilla).",
     "client.commands.setPrefix.success.name": "Le préfixe des commandes a été défini sur &7'{}'",
     "client.commands.setPrefix.desc": "Définir le préfixe des commandes",
     "client.commands.toggle.msg.unknownModule.name": "Module '{}' inconnu",

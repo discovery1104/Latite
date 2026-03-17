@@ -9,7 +9,7 @@ public:
 	Assets(Assets&) = delete;
 	Assets(Assets&&) = delete;
 
-	Asset latiteLogo;
+	Asset OmotiLogo;
 	Asset searchIcon;
 	Asset arrowIcon;
 	Asset xIcon;

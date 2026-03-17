@@ -1,0 +1,27 @@
+#include "resource.h"
+
+ICON_LOGO RCDATA "assets\\logo.png"
+ICON_ARROW RCDATA "assets\\arrow.png"
+ICON_ARROWBACK RCDATA "assets\\arrow_back.png"
+ICON_COG RCDATA "assets\\cog.png"
+ICON_CHECKMARK RCDATA "assets\\checkmark.png"
+ICON_HUDEDIT RCDATA "assets\\hudedit.png"
+ICON_SEARCH RCDATA "assets\\searchicon.png"
+ICON_X RCDATA "assets\\x.png"
+ICON_LOGOWHITE RCDATA "assets\\Omotiwhite.png"
+ICON_DOCUMENT RCDATA "assets\\document.png"
+
+
+LANG_EN_US TEXTFILE "assets\\lang\\en_US.json"
+LANG_ES_ES TEXTFILE "assets\\lang\\es_ES.json"
+LANG_PT_PT TEXTFILE "assets\\lang\\pt_PT.json"
+LANG_ZH_CN TEXTFILE "assets\\lang\\zh_CN.json"
+LANG_ZH_TW TEXTFILE "assets\\lang\\zh_TW.json"
+LANG_AR_AR TEXTFILE "assets\\lang\\ar_AR.json"
+LANG_CS_CZ TEXTFILE "assets\\lang\\cs_CZ.json"
+LANG_FR_FR TEXTFILE "assets\\lang\\fr_FR.json"
+LANG_JA_JP TEXTFILE "assets\\lang\\ja_JP.json"
+LANG_PT_BR TEXTFILE "assets\\lang\\pt_BR.json"
+LANG_NL_NL TEXTFILE "assets\\lang\\nl_NL.json"
+
+JS_OmotiAPI TEXTFILE "src\\client\\script\\js\\Omotiapi.js"

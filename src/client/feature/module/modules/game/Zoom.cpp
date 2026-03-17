@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Zoom.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/render/Renderer.h"
 
 Zoom::Zoom() : Module("Zoom", LocalizeString::get("client.module.zoom.name"),
@@ -38,7 +38,7 @@ void Zoom::onRenderLevel(Event& evGeneric) {
 	modifyTo = std::clamp(shouldZoom ? std::get<FloatValue>(modifier).value + zoomModifier : 1.f, 1.f, 60.f);
 
 	// partial ticks
-	float alpha = Latite::getRenderer().getDeltaTime();
+	float alpha = Omoti::getRenderer().getDeltaTime();
 	float lr = modifyTo;
 	if (std::get<BoolValue>(hasAnim)) lr = std::lerp(activeModifier, modifyTo, alpha * std::get<FloatValue>(animSpeed) / 10.f);
 	activeModifier = lr;

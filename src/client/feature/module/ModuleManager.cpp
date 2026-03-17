@@ -53,51 +53,8 @@
 #include "client/event/events/KeyUpdateEvent.h"
 
 ModuleManager::ModuleManager() {
-#ifdef LATITE_DEBUG
-	this->items.push_back(std::make_shared<TestModule>());
-#endif
-	this->items.push_back(std::make_shared<Zoom>());
-	this->items.push_back(std::make_shared<Fullbright>());
-	this->items.push_back(std::make_shared<MotionBlur>());
-	//this->items.push_back(std::make_shared<HurtColor>());
-	this->items.push_back(std::make_shared<FPSCounter>());
-	this->items.push_back(std::make_shared<CPSCounter>());
-	this->items.push_back(std::make_shared<ServerDisplay>());
-	this->items.push_back(std::make_shared<PingDisplay>());
-	this->items.push_back(std::make_shared<SpeedDisplay>());
-	this->items.push_back(std::make_shared<ToggleSprintSneak>());
-	this->items.push_back(std::make_shared<Clock>());
-	this->items.push_back(std::make_shared<BowIndicator>());
-	this->items.push_back(std::make_shared<GuiscaleChanger>());
-	this->items.push_back(std::make_shared<DebugInfo>());
-	this->items.push_back(std::make_shared<TabList>());
-	this->items.push_back(std::make_shared<Keystrokes>());
-	this->items.push_back(std::make_shared<CinematicCamera>());
-	this->items.push_back(std::make_shared<HealthWarning>());
-	this->items.push_back(std::make_shared<BreakIndicator>());
-	this->items.push_back(std::make_shared<BehindYou>());
-	this->items.push_back(std::make_shared<ChunkBorders>());
-	this->items.push_back(std::make_shared<ArmorHUD>());
-	this->items.push_back(std::make_shared<MovablePaperdoll>());
-	this->items.push_back(std::make_shared<Hitboxes>());
-	this->items.push_back(std::make_shared<BlockOutline>());
-	this->items.push_back(std::make_shared<MovableScoreboard>());
-	this->items.push_back(std::make_shared<Nickname>());
-	this->items.push_back(std::make_shared<ReachDisplay>());
-	this->items.push_back(std::make_shared<MovableBossbar>());
-	this->items.push_back(std::make_shared<ThirdPersonNametag>());
-	this->items.push_back(std::make_shared<EnvironmentChanger>());
-	this->items.push_back(std::make_shared<CommandShortcuts>());
-	this->items.push_back(std::make_shared<ItemCounter>());
-	//this->items.push_back(std::make_shared<Chat>());
-	this->items.push_back(std::make_shared<TextHotkey>());
-	this->items.push_back(std::make_shared<Freelook>());
-	this->items.push_back(std::make_shared<ComboCounter>());
-	this->items.push_back(std::make_shared<CustomCoordinates>());
-	this->items.push_back(std::make_shared<MovableCoordinates>());
-	this->items.push_back(std::make_shared<AutoGG>());
-	this->items.push_back(std::make_shared<FrameTimeDisplay>());
-	this->items.push_back(std::make_shared<BlockGame>());
+	// Intentionally keep the default module list empty.
+	// Music GUI is handled directly by ClickGUI.
 
 	for (auto& mod : items) {
 		mod->onInit();

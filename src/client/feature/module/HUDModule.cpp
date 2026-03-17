@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "HUDModule.h"
-#include <client/Latite.h>
+#include <client/Omoti.h>
 
 void HUDModule::renderSelected(DrawUtil& ctx) {
 	ctx.fillRectangle(this->getRect(), { 1.f, 1.f, 1.f, 0.2f });

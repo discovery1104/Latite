@@ -1,5 +1,5 @@
 #include "DXHooks.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/render/Renderer.h"
 #include "mc/common/client/game/GameCore.h"
 #include "mc/common/client/game/Options.h"
@@ -56,7 +56,7 @@ namespace {
 }
 
 void DXHooks::CheckForceDisableVSync() {
-    if (Latite::get().shouldForceDisableVSync()) {
+    if (Omoti::get().shouldForceDisableVSync()) {
         isForceDisableVSync = true;
     } else {
         isForceDisableVSync = false;
@@ -99,14 +99,14 @@ HRESULT WINAPI DXHooks::CreateSwapChainForHWNDHook(
 }
 
 HRESULT __stdcall DXHooks::SwapChain_Present(IDXGISwapChain* chain, UINT SyncInterval, UINT Flags) {
-    if (Latite::getRenderer().hasInitialized()) {
-        auto lock = Latite::getRenderer().lock();
-        Latite::getRenderer().render();
+    if (Omoti::getRenderer().hasInitialized()) {
+        auto lock = Omoti::getRenderer().lock();
+        Omoti::getRenderer().render();
     }
 
-    if (!Latite::getRenderer().hasInitialized()) {
-        auto lock = Latite::getRenderer().lock();
-        Latite::getRenderer().init(chain);
+    if (!Omoti::getRenderer().hasInitialized()) {
+        auto lock = Omoti::getRenderer().lock();
+        Omoti::getRenderer().init(chain);
     }
 
     //static bool hasKilled = false;
@@ -137,7 +137,7 @@ HRESULT __stdcall DXHooks::SwapChain_ResizeBuffers(
     const UINT *pCreationNodeMask,
     IUnknown *const *ppPresentQueue) {
 
-    Latite::getRenderer().reinit();
+    Omoti::getRenderer().reinit();
     UINT newFlags = SwapChainFlags;
     if (tearingSupported && isForceDisableVSync) {
         newFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -149,8 +149,8 @@ HRESULT __stdcall DXHooks::SwapChain_ResizeBuffers(
 
 HRESULT __stdcall DXHooks::CommandQueue_ExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists,
     ID3D12CommandList* const* ppCommandLists) {
-    auto lock = Latite::getRenderer().lock();
-    Latite::getRenderer().setCommandQueue(queue);
+    auto lock = Omoti::getRenderer().lock();
+    Omoti::getRenderer().setCommandQueue(queue);
     return ExecuteCommandListsHook->oFunc<decltype(&CommandQueue_ExecuteCommandLists)>()(
         queue, NumCommandLists, ppCommandLists);
 }
@@ -182,7 +182,7 @@ DXHooks::DXHooks() : HookGroup("DirectX") {
     ZeroMemory(&wnd, sizeof(WNDCLASSEX));
 
     wnd.cbSize = sizeof(WNDCLASSEX);
-    wnd.hInstance = Latite::get().dllInst;
+    wnd.hInstance = Omoti::get().dllInst;
     wnd.lpszClassName = L"dummywnd";
     wnd.lpfnWndProc = DefWindowProc;
     wnd.lpszMenuName = 0;
@@ -191,7 +191,7 @@ DXHooks::DXHooks() : HookGroup("DirectX") {
     RegisterClassExW(&wnd);
 
     HWND hWnd = CreateWindowExW(0, L"dummywnd", L"hi", WS_MINIMIZEBOX,
-        0, 0, 100, 100, nullptr, nullptr, Latite::get().dllInst, nullptr);
+        0, 0, 100, 100, nullptr, nullptr, Omoti::get().dllInst, nullptr);
 
     swapChainDesc.OutputWindow = hWnd;
     swapChainDesc.SampleDesc.Count = 1;
@@ -224,7 +224,7 @@ DXHooks::DXHooks() : HookGroup("DirectX") {
     }
 
     DestroyWindow(hWnd);
-    UnregisterClassW(L"dummywnd", Latite::get().dllInst);
+    UnregisterClassW(L"dummywnd", Omoti::get().dllInst);
 
     ComPtr<IDXGIFactory2> factory2;
     if (SUCCEEDED(factory.As(&factory2))) {

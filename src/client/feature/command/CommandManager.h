@@ -4,7 +4,7 @@
 
 class CommandManager final : public Manager<ICommand>  {
 public:
-	std::string prefix = ".";
+	std::string prefix = "!";
 
 	CommandManager();
 	virtual ~CommandManager() = default;

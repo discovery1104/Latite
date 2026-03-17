@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Eventing.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 Eventing& Eventing::get() {
-	return Latite::getEventing();
+	return Omoti::getEventing();
 }

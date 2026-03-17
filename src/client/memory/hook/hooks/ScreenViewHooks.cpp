@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ScreenViewHooks.h"
-#include "PacketHooks.h"
 #include "client/event/Eventing.h"
 #include "client/event/events/RenderLayerEvent.h"
 #include "client/event/events/RenderGameEvent.h"
@@ -20,15 +19,7 @@ void __fastcall ScreenViewHooks::setupAndRender(SDK::ScreenView* view, void* ctx
 
 	if (view->visualTree->rootControl->name == "debug_screen") {
 		PluginManager::Event ev{L"render2d", {}, false};
-		Latite::getPluginManager().dispatchEvent(ev);
-	}
-
-	static bool hasInitPacketSender = false;
-	if (!hasInitPacketSender) {
-		if (SDK::ClientInstance::get()->getLocalPlayer()) {
-			Latite::getHooks().get<PacketHooks>().initPacketSender(SDK::ClientInstance::get()->getLocalPlayer()->packetSender);
-			hasInitPacketSender = true;
-		}
+		Omoti::getPluginManager().dispatchEvent(ev);
 	}
 
 	RenderGameEvent evt{ };

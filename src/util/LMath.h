@@ -7,7 +7,7 @@
 
 static constexpr float pi_f = 3.1415926535f;
 
-namespace LatiteMath {
+namespace OmotiMath {
 	static constexpr float abs(float f) {
 		return f < 0.f ? -f : f;
 	}

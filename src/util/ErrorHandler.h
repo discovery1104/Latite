@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 #include "pch.h"
 #include "util/Logger.h"
 #include <stdexcept>

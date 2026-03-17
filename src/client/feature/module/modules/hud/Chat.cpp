@@ -6,7 +6,7 @@
 
 Chat::Chat() : HUDModule("Chat", L"Custom Chat", L"A custom chat, replacing the vanilla chat.", HUD) {
 	listen<ChatMessageEvent>((EventListenerFunc)&Chat::onText);
-	//listen<LatiteClientMessageEvent>((EventListenerFunc)&Chat::onLatiteMessage);
+	//listen<OmotiClientMessageEvent>((EventListenerFunc)&Chat::onOmotiMessage);
 	//listen<RenderLayerEvent>((EventListenerFunc)&Chat::onRenderLayer, true);
 	
 	anchorData.addEntry(EnumEntry{ anchor_auto, L"Auto" });
@@ -129,8 +129,8 @@ void Chat::onText(Event& evG) {
 	ev.setCancelled(true);
 }
 
-void Chat::onLatiteMessage(Event& evG) {
-	auto& ev = reinterpret_cast<LatiteClientMessageEvent&>(evG);
+void Chat::onOmotiMessage(Event& evG) {
+	auto& ev = reinterpret_cast<OmotiClientMessageEvent&>(evG);
 	addMessage(ev.getMessage());
 }
 

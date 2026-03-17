@@ -57,7 +57,7 @@ void JsScreen::onClick(::Event& evG) {
 }
 
 void JsScreen::onEnable(bool ignoreAnims) {
-	Latite::get().queueForClientThread([this, ignoreAnims]() {
+	Omoti::get().queueForClientThread([this, ignoreAnims]() {
 		Chakra::SetContext(ctx);
 
 		Event ev{ L"enable", { (ignoreAnims ? Chakra::GetTrue() : Chakra::GetFalse()) }};
@@ -69,7 +69,7 @@ void JsScreen::onEnable(bool ignoreAnims) {
 }
 
 void JsScreen::onDisable() {
-	Latite::get().queueForClientThread([this]() {
+	Omoti::get().queueForClientThread([this]() {
 		Chakra::SetContext(ctx);
 		Event ev{ L"disable", {  } };
 		auto ret = dispatchEvent(ev);

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string_view>
 #include "client/event/Listener.h"
 #include "client/feature/setting/Setting.h"
@@ -15,16 +15,16 @@ namespace sdk {
 	class Font;
 }
 
-class Latite final : public Listener {
+class Omoti final : public Listener {
 public:
-	[[nodiscard]] static Latite& get() noexcept;
+	[[nodiscard]] static Omoti& get() noexcept;
 
 	[[nodiscard]] static class ModuleManager& getModuleManager() noexcept;
 	[[nodiscard]] static class CommandManager& getCommandManager() noexcept;
 	[[nodiscard]] static class ConfigManager& getConfigManager() noexcept;
 	[[nodiscard]] static class ClientMessageQueue& getClientMessageQueue() noexcept;
 	[[nodiscard]] static class SettingGroup& getSettings() noexcept;
-	[[nodiscard]] static class LatiteHooks& getHooks() noexcept;
+	[[nodiscard]] static class OmotiHooks& getHooks() noexcept;
 	[[nodiscard]] static class Eventing& getEventing() noexcept;
 	[[nodiscard]] static class Renderer& getRenderer() noexcept;
 	[[nodiscard]] static class ScreenManager& getScreenManager() noexcept;
@@ -50,10 +50,10 @@ public:
 	void queueForClientThread(std::function<void()> callback);
 	void queueForDXRender(std::function<void(ID2D1DeviceContext* ctx)> callback);
 
-	Latite() = default;
-	~Latite() = default;
+	Omoti() = default;
+	~Omoti() = default;
 
-	static constexpr std::string_view version = "v2.6.2";
+	static constexpr std::string_view version = "v2.6.1";
 	HINSTANCE dllInst = NULL;
 	std::string gameVersion;
 
@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	std::vector<std::string> getLatiteUsers();
+	std::vector<std::string> getOmotiUsers();
 
 	[[nodiscard]] KeyValue getMenuKey() {
 		return std::get<KeyValue>(menuKey);
@@ -116,7 +116,7 @@ public:
 
 	[[nodiscard]] SDK::Font* getFont();
 
-	void fetchLatiteUsers();
+	void fetchOmotiUsers();
 	std::wstring GetCurrentModuleFilePath(HMODULE hModule);
 	std::string fetchLatestGitHash();
 	std::string calcCurrentDLLHash();
@@ -134,8 +134,8 @@ private:
 	std::optional<LocalizeData> l10nData;
 
 	bool downloadingAssets = false;
-	std::vector<std::string> latiteUsers;
-	std::vector<std::string> latiteUsersDirty;
+	std::vector<std::string> OmotiUsers;
+	std::vector<std::string> OmotiUsersDirty;
 
 	std::queue<std::function<void(SDK::MinecraftUIRenderContext* ctx)>> uiRenderQueue;
 	std::queue<std::function<void(ID2D1DeviceContext* ctx)>> dxRenderQueue;
@@ -144,8 +144,8 @@ private:
 	Timings timings{};
 	inline static std::optional<std::thread::id> gameThreadId;
 
-	ValueType commandPrefix = TextValue(L".");
-	ValueType menuKey = KeyValue('M');
+	ValueType commandPrefix = TextValue(L"!");
+	ValueType menuKey = KeyValue('O');
 	ValueType ejectKey = KeyValue(VK_END);
 	ValueType hudBlur = BoolValue(false);
 	ValueType hudBlurIntensity = FloatValue(10.f);

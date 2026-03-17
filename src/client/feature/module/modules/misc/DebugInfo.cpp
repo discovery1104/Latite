@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "DebugInfo.h"
 
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/render/Renderer.h"
 #include "client/event/events/DrawHUDModulesEvent.h"
 #include "client/event/events/RenderLayerEvent.h"
@@ -20,10 +20,10 @@ DebugInfo::DebugInfo() : Module("DebugInfo", LocalizeString::get("client.module.
 
 namespace {
     std::string getMinecraftVersion() {
-        return std::format("Latite Client {}, Minecraft {}", Latite::get().version, Latite::get().gameVersion);
+        return std::format("Omoti Music Client {}, Minecraft {}", Omoti::get().version, Omoti::get().gameVersion);
     }
     std::string getFPS() {
-        return std::format("FPS: {}", Latite::get().getTimings().getFPS());
+        return std::format("FPS: {}", Omoti::get().getTimings().getFPS());
     }
     std::string getDimension() {
         return std::format("Dimension: {}", SDK::ClientInstance::get()->getLocalPlayer()->dimension->dimensionName);
@@ -75,7 +75,7 @@ namespace {
         return std::format("Memory Usage: {:.2f} GB / {:.2f} GB", usedMemoryGB, totalMemoryGB);
     }
     std::string getGpuInfo() {
-        return std::format("Display: Unknown (DirectX{})", Latite::getRenderer().isDX11ByDefault() ? "11/10.1" : "12");
+        return std::format("Display: Unknown (DirectX{})", Omoti::getRenderer().isDX11ByDefault() ? "11/10.1" : "12");
     }
     std::string getCpuInfo() {
         std::string cpuInfo = util::GetProcessorInfo();
@@ -102,18 +102,18 @@ namespace {
             return avg / (float)vec.size();
         };
 
-        float arp = chkVec(arpPerf, Latite::getRenderer().arpPerf / 1000.f);
-        float d2d = chkVec(d2dPerf, Latite::getRenderer().d2dPerf / 1000.f);
-        float d3d = chkVec(d3dPerf, Latite::getRenderer().d3dPerf / 1000.f);
+        float arp = chkVec(arpPerf, Omoti::getRenderer().arpPerf / 1000.f);
+        float d2d = chkVec(d2dPerf, Omoti::getRenderer().d2dPerf / 1000.f);
+        float d3d = chkVec(d3dPerf, Omoti::getRenderer().d3dPerf / 1000.f);
 
-        return std::format("\nAverages:\nAcquireWrappedResources: {:.3f}ms\nLatite Direct2D total: {:.3f}ms \nLatite Direct3D total: {:.3f}ms", arp, d2d, d3d);
+        return std::format("\nAverages:\nAcquireWrappedResources: {:.3f}ms\nOmoti Direct2D total: {:.3f}ms \nOmoti Direct3D total: {:.3f}ms", arp, d2d, d3d);
     }
 }
 #undef GETFPS
 
 void DebugInfo::onRenderOverlay(Event& evG) {
     RenderLayerEvent& ev = reinterpret_cast<RenderLayerEvent&>(evG);
-    MCDrawUtil dc{ ev.getUIRenderContext(), Latite::get().getFont() };
+    MCDrawUtil dc{ ev.getUIRenderContext(), Omoti::get().getFont() };
 
     if (!SDK::ClientInstance::get()->getLocalPlayer()) return;
 

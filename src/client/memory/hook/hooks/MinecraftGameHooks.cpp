@@ -4,7 +4,7 @@
 #include "client/event/events/UpdateEvent.h"
 #include "client/event/Eventing.h"
 #include "client/script/PluginManager.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 
 namespace {
 	std::shared_ptr<Hook> onAppSuspendedHook;
@@ -17,7 +17,7 @@ void* MinecraftGameHooks::onAppSuspended(SDK::MinecraftGame* game,void*a,void*b,
 	Eventing::get().dispatch(ev);
 	{
 		PluginManager::Event sev{L"app-suspended", {}, false};
-		Latite::getPluginManager().dispatchEvent(sev);
+		Omoti::getPluginManager().dispatchEvent(sev);
 	}
 
 	return onAppSuspendedHook->oFunc<decltype(&onAppSuspended)>()(game,a,b,c);
@@ -39,7 +39,7 @@ void __fastcall MinecraftGameHooks::_update(SDK::MinecraftGame* game) {
 
 	{
 		PluginManager::Event sev{L"renderDX", {}, false};
-		Latite::getPluginManager().dispatchEvent(sev);
+		Omoti::getPluginManager().dispatchEvent(sev);
 	}
 
 	Eventing::get().dispatch(ev);

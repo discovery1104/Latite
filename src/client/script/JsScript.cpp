@@ -19,7 +19,7 @@
 
 #include "globals/ClientScriptingObject.h"
 
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/misc/ClientMessageQueue.h"
 
 #include "class/classes/JsVec2.h"
@@ -151,7 +151,7 @@ void JsScript::handleAsyncOperations() {
 JsErrorCode JsScript::runScript() {
 	Chakra::SetContext(ctx);
 	//this->checkTrusted();
-#if LATITE_DEBUG
+#if Omoti_DEBUG
 	//Logger::Info("isTrusted = {}", this->isTrusted());
 #endif
 
@@ -185,17 +185,17 @@ void JsScript::loadJSApi() {
 	Chakra::SetContext(ctx);
 	JsValueRef res;
 
-	auto resource = GET_RESOURCE(latiteapi_js);
+	auto resource = GET_RESOURCE(Omotiapi_js);
 
 	// null-terminate the data because Chakra accepts a null-terminated string only
 	auto ptr = new char[resource.size() + 1];
 	ptr[resource.size()] = 0;
 	memcpy(ptr, resource.data(), resource.size());
 
-	auto err = JS::JsRunScript(util::StrToWStr(ptr).c_str(), sCtx, L"latiteapi.js", &res);
+	auto err = JS::JsRunScript(util::StrToWStr(ptr).c_str(), sCtx, L"Omotiapi.js", &res);
 	delete[] ptr;
 
-	Latite::getPluginManager().handleErrors(err);
+	Omoti::getPluginManager().handleErrors(err);
 	if (!err) {
 		JS::JsRelease(res, nullptr);
 	}
@@ -334,7 +334,7 @@ namespace {
 			JS::JsStringToPointer(myString, &result, &len);
 
 			std::string fs = util::WStrToStr(result);
-			Latite::getClientMessageQueue().display(fs);
+			Omoti::getClientMessageQueue().display(fs);
 
 			JS::JsRelease(myString, nullptr);
 		}
@@ -413,7 +413,7 @@ namespace {
 		auto res = co_await dialog.ShowAsync();
 
 		bool hasPlugin = false;
-		Latite::getPluginManager().forEach([plugin, &hasPlugin](std::shared_ptr<JsPlugin> plug) {
+		Omoti::getPluginManager().forEach([plugin, &hasPlugin](std::shared_ptr<JsPlugin> plug) {
 			if (plug.get() == plugin) {
 				hasPlugin = true;
 			}
@@ -578,6 +578,6 @@ JsValueRef JsScript::AsyncOperation::call() {
 	Chakra::SetContext(this->ctx);
 	JsValueRef obj;
 	this->args.insert(this->args.begin(), this->callback);
-	Latite::getPluginManager().handleErrors(Chakra::CallFunction(this->callback, this->args.data(), static_cast<unsigned short>(this->args.size()), &obj));
+	Omoti::getPluginManager().handleErrors(Chakra::CallFunction(this->callback, this->args.data(), static_cast<unsigned short>(this->args.size()), &obj));
 	return obj;
 }

@@ -31,7 +31,7 @@ std::shared_ptr<SDK::Packet> PacketHooks::MinecraftPackets_createPacket(SDK::Pac
 void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* networkIdentifier, void* netEventCallback, std::shared_ptr<SDK::Packet>& packet) {
 	auto& hook = PacketHookArray[(size_t)packet->getID()];
 
-	if (Latite::isMainThread()) {
+	if (Omoti::isMainThread()) {
 		PacketReceiveEvent ev{ packet.get() };
 		Eventing::get().dispatch(ev);
 
@@ -39,7 +39,7 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 
 		if (packetId == SDK::PacketID::CHANGE_DIMENSION) {
 			PluginManager::Event sEv{ XW("change-dimension"), {}, false };
-			Latite::getPluginManager().dispatchEvent(sEv);
+			Omoti::getPluginManager().dispatchEvent(sEv);
 		}
 		else if (packetId == SDK::PacketID::SET_SCORE) {
 			auto pkt = std::static_pointer_cast<SDK::SetScorePacket>(packet);
@@ -48,7 +48,7 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 			data.val = pkt->serialize();
 
 			PluginManager::Event sEv{ XW("set-score"), { data }, false };
-			Latite::getPluginManager().dispatchEvent(sEv);
+			Omoti::getPluginManager().dispatchEvent(sEv);
 		}
 		else if (packetId == SDK::PacketID::MODAL_FORM_REQUEST) {
 			auto pkt = std::static_pointer_cast<SDK::ModalFormRequestPacket>(packet);
@@ -60,11 +60,11 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 			formJson.val = util::StrToWStr(pkt->mFormJSON);
 		
 			PluginManager::Event sEv{ XW("modal-form-request"), { formId, formJson }, false };
-			if (Latite::getPluginManager().dispatchEvent(sEv)) return;
+			if (Omoti::getPluginManager().dispatchEvent(sEv)) return;
 		}
 		else if (packetId == SDK::PacketID::TRANSFER) {
 			PluginManager::Event sEv{ XW("transfer"), {}, false };
-			Latite::getPluginManager().dispatchEvent(sEv);
+			Omoti::getPluginManager().dispatchEvent(sEv);
 		} else if (packetId == SDK::PacketID::SET_TITLE) {
 			auto pkt = std::static_pointer_cast<SDK::SetTitlePacket>(packet);
 			auto v1 = PluginManager::Event::Value(L"type");
@@ -105,7 +105,7 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 			v2.val = util::StrToWStr(pkt->text);
 
 			PluginManager::Event ev(L"title", { v1, v2 }, true);
-			if (Latite::getPluginManager().dispatchEvent(ev)) {
+			if (Omoti::getPluginManager().dispatchEvent(ev)) {
 				pkt->type = SDK::TitleType::Clear;
 			}
 		}
@@ -162,7 +162,7 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 				|| pkt->type == SDK::TextPacketType::OBJECT_WHISPER || pkt->type == SDK::TextPacketType::ANNOUNCEMENT);
 
 			PluginManager::Event sEv{ L"receive-chat", { typ, val, val2, val3, isChat }, true };
-			if (Latite::getPluginManager().dispatchEvent(sEv)) {
+			if (Omoti::getPluginManager().dispatchEvent(sEv)) {
 				return;
 			}
 

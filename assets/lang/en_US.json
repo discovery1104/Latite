@@ -1,7 +1,7 @@
 {
   "name": "English (US)",
     "translations": {
-        "client.intro.welcome": "Welcome to Latite Client!",
+"client.intro.welcome": "Welcome to Omoti Music Client!",
         "client.intro.menubutton": "Press {} in a world or server to open the mod menu.",
         "client.settings.menuKey.name": "Menu Key",
         "client.settings.ejectKey.name": "Eject Key",
@@ -34,7 +34,7 @@
         "client.settings.centerCursor.desc": "Crosshair will be centered when you open the menu.",
         "client.settings.snapLines.desc": "Snap lines to help you align modules",
         "client.settings.detectLanguage.name": "Detect language",
-        "client.settings.detectLanguage.desc": "Automatically switch Latite Client's language based off of the system language.",
+"client.settings.detectLanguage.desc": "Automatically switch Omoti Music Client's language based off of the system language.",
         "client.settings.mcRendererFont.default.name": "Default",
         "client.settings.mcRendererFont.notoSans.name": "Noto Sans",
         "client.settings.mcRendererFont.default.desc": "The default UI font (Mojangles by default)",
@@ -431,7 +431,7 @@
         "client.module.autoGG.customMessage.desc": "The custom message to send",
         "client.commands.help.desc": "Shows all commands and descriptions.",
         "client.commands.eject.ejectMsg.name": "Unloaded the client.",
-        "client.commands.eject.desc": "Removes Latite from the game.",
+        "client.commands.eject.desc": "Removes Omoti from the game.",
         "client.commands.setPrefix.success.name": "The command prefix is set to &7'{}'",
         "client.commands.setPrefix.desc": "Set the command prefix",
         "client.commands.toggle.msg.unknownModule.name": "Unknown module {}",

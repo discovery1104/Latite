@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "DrawContext.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "Util.h"
 #include "mc/common/client/renderer/Tessellator.h"
 #include "mc/common/client/renderer/MeshUtils.h"
@@ -116,15 +116,15 @@ void D2DUtil::fillRoundedRectangle(RectF const& rect, ID2D1Brush* cbrush, float 
 }
 
 void D2DUtil::drawGaussianBlur(float intensity)  {
-	ID2D1Effect* gaussianBlurEffect = Latite::getRenderer().getBlurEffect();
+	ID2D1Effect* gaussianBlurEffect = Omoti::getRenderer().getBlurEffect();
 	
-	// maybe we might not need to flush if we dont draw anything before clickgui?
+	// maybe we might not need to flush if we dont draw anything before musicgui?
 	ctx->Flush();
-	auto bitmap = Latite::getRenderer().getBlurBitmap();
+	auto bitmap = Omoti::getRenderer().getBlurBitmap();
 	gaussianBlurEffect->SetInput(0, bitmap);
 	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, intensity);
 	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_HARD);
-	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_SPEED);
+	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
 	auto sz = ctx->GetPixelSize();
 	auto rc = D2D1::RectF(0, 0, (float)sz.width, (float)sz.height);
 	D2D1::Matrix3x2F oMat;
@@ -133,14 +133,14 @@ void D2DUtil::drawGaussianBlur(float intensity)  {
 }
 
 void D2DUtil::drawGaussianBlur(ID2D1Bitmap1* bmp, float intensity) {
-	ID2D1Effect* gaussianBlurEffect = Latite::getRenderer().getBlurEffect();
+	ID2D1Effect* gaussianBlurEffect = Omoti::getRenderer().getBlurEffect();
 
 	ctx->Flush();
-	Latite::getRenderer().getCopiedBitmap(bmp);
+	Omoti::getRenderer().getCopiedBitmap(bmp);
 	gaussianBlurEffect->SetInput(0, bmp);
 	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, intensity);
 	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_HARD);
-	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_SPEED);
+	gaussianBlurEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
 	auto sz = ctx->GetPixelSize();
 	auto rc = D2D1::RectF(0, 0, (float)sz.width, (float)sz.height);
 	D2D1::Matrix3x2F oMat;
@@ -149,9 +149,9 @@ void D2DUtil::drawGaussianBlur(ID2D1Bitmap1* bmp, float intensity) {
 }
 
 void D2DUtil::drawText(RectF const& rc, std::wstring const& ws, d2d::Color const& color, Renderer::FontSelection font, float size, DWRITE_TEXT_ALIGNMENT alignment, DWRITE_PARAGRAPH_ALIGNMENT verticalAlignment, bool cache, bool hyphen)  {
-	ComPtr<IDWriteTextFormat> fmt = Latite::getRenderer().getTextFormat(font);
+	ComPtr<IDWriteTextFormat> fmt = Omoti::getRenderer().getTextFormat(font);
 	brush->SetColor(color.get());
-	if (auto layout = Latite::getRenderer().getLayout(fmt.Get(), ws, cache)) {
+	if (auto layout = Omoti::getRenderer().getLayout(fmt.Get(), ws, cache)) {
 		layout->SetMaxWidth(rc.getWidth());
 		layout->SetMaxHeight(rc.getHeight());
 		DWRITE_TEXT_RANGE range{};
@@ -165,9 +165,9 @@ void D2DUtil::drawText(RectF const& rc, std::wstring const& ws, d2d::Color const
 }
 
 Vec2 D2DUtil::getTextSize(std::wstring const& ws, Renderer::FontSelection font, float size, bool tw, bool cache, std::optional<Vec2> bounds) {
-	ComPtr<IDWriteTextFormat> fmt = Latite::getRenderer().getTextFormat(font);
+	ComPtr<IDWriteTextFormat> fmt = Omoti::getRenderer().getTextFormat(font);
 	auto ss = ctx->GetPixelSize();
-	if (auto layout = Latite::getRenderer().getLayout(fmt.Get(), ws, cache)) {
+	if (auto layout = Omoti::getRenderer().getLayout(fmt.Get(), ws, cache)) {
 		if (!bounds.has_value()) {
 			layout->SetMaxWidth(static_cast<float>(ss.width));
 			layout->SetMaxHeight(static_cast<float>(ss.height));
@@ -196,9 +196,9 @@ Vec2 D2DUtil::getTextSize(std::wstring const& ws, Renderer::FontSelection font, 
 }
 
 d2d::Rect D2DUtil::getTextRect(std::wstring const& ws, Renderer::FontSelection font, float size, float pad, bool cache) {
-	ComPtr<IDWriteTextFormat> fmt = Latite::getRenderer().getTextFormat(font);
+	ComPtr<IDWriteTextFormat> fmt = Omoti::getRenderer().getTextFormat(font);
 	auto ss = ctx->GetPixelSize();
-	if (auto layout = Latite::getRenderer().getLayout(fmt.Get(), ws, cache)) {
+	if (auto layout = Omoti::getRenderer().getLayout(fmt.Get(), ws, cache)) {
 		layout->SetMaxWidth(static_cast<float>(ss.width));
 		layout->SetMaxHeight(static_cast<float>(ss.height));
 		DWRITE_TEXT_RANGE range;
@@ -220,7 +220,7 @@ d2d::Rect D2DUtil::getTextRect(std::wstring const& ws, Renderer::FontSelection f
 	return {};
 }
 
-D2DUtil::D2DUtil() : brush(Latite::getRenderer().getSolidBrush()), ctx(Latite::getRenderer().getDeviceContext()), factory(Latite::getRenderer().getDWriteFactory())  {
+D2DUtil::D2DUtil() : brush(Omoti::getRenderer().getSolidBrush()), ctx(Omoti::getRenderer().getDeviceContext()), factory(Omoti::getRenderer().getDWriteFactory())  {
 }
 
 SDK::RectangleArea MCDrawUtil::getRect(d2d::Rect const& rc) {
@@ -316,7 +316,7 @@ void MCDrawUtil::fillPolygon(Vec2 const& center, float radius, int numSides, d2d
 	//tess->vertex(center.x + 5.f, center.y + 7.34f);
 	float angle = (2.0f * pi_f) / static_cast<float>(numSides);
 
-	constexpr float myNinetyDeg = LatiteMath::deg2rad(90.f);
+	constexpr float myNinetyDeg = OmotiMath::deg2rad(90.f);
 
 	tess->begin(SDK::Primitive::Trianglestrip, numSides * 2);
 	for (float i = 0; i <= static_cast<float>(numSides); ++i) {
@@ -387,10 +387,10 @@ void MCDrawUtil::fillRoundedRectangle(RectF const& rc, d2d::Color const& col, fl
 		}
 	};
 
-	drawCorner({ rect.left + radius, rect.top + radius }, LatiteMath::deg2rad(180.f), LatiteMath::deg2rad(270.f));
-	drawCorner({ rect.right - radius, rect.top + radius }, LatiteMath::deg2rad(270.f), LatiteMath::deg2rad(360.f));
-	drawCorner({ rect.right - radius, rect.bottom - radius }, LatiteMath::deg2rad(0.f), LatiteMath::deg2rad(90.f));
-	drawCorner({ rect.left + radius, rect.bottom - radius }, LatiteMath::deg2rad(90.f), LatiteMath::deg2rad(180.f));
+	drawCorner({ rect.left + radius, rect.top + radius }, OmotiMath::deg2rad(180.f), OmotiMath::deg2rad(270.f));
+	drawCorner({ rect.right - radius, rect.top + radius }, OmotiMath::deg2rad(270.f), OmotiMath::deg2rad(360.f));
+	drawCorner({ rect.right - radius, rect.bottom - radius }, OmotiMath::deg2rad(0.f), OmotiMath::deg2rad(90.f));
+	drawCorner({ rect.left + radius, rect.bottom - radius }, OmotiMath::deg2rad(90.f), OmotiMath::deg2rad(180.f));
 
 	tess->vertex(rect.left, rect.top + radius);
 	tess->vertex(rect.centerX(), rect.centerY());
@@ -425,10 +425,10 @@ void MCDrawUtil::drawRoundedRectangle(RectF rect, d2d::Color const& color, float
 		}
 	};
 
-	drawCorner({ rect.left + radius, rect.top + radius }, LatiteMath::deg2rad(180.f), LatiteMath::deg2rad(270.f));
-	drawCorner({ rect.right - radius, rect.top + radius }, LatiteMath::deg2rad(270.f), LatiteMath::deg2rad(360.f));
-	drawCorner({ rect.right - radius, rect.bottom - radius }, LatiteMath::deg2rad(0.f), LatiteMath::deg2rad(90.f));
-	drawCorner({ rect.left + radius, rect.bottom - radius }, LatiteMath::deg2rad(90.f), LatiteMath::deg2rad(180.f));
+	drawCorner({ rect.left + radius, rect.top + radius }, OmotiMath::deg2rad(180.f), OmotiMath::deg2rad(270.f));
+	drawCorner({ rect.right - radius, rect.top + radius }, OmotiMath::deg2rad(270.f), OmotiMath::deg2rad(360.f));
+	drawCorner({ rect.right - radius, rect.bottom - radius }, OmotiMath::deg2rad(0.f), OmotiMath::deg2rad(90.f));
+	drawCorner({ rect.left + radius, rect.bottom - radius }, OmotiMath::deg2rad(90.f), OmotiMath::deg2rad(180.f));
 
 	tess->vertex(rect.left, rect.top + radius);
 	tess->vertex(rect.left + lineThickness, rect.top + radius);
@@ -455,7 +455,7 @@ void MCDrawUtil::drawText(RectF const& rc, std::wstring const& text, d2d::Color 
 	
 	RectF rMod = rc;
 	rMod.top = newTop;
-	renderCtx->drawText(this->font, getRect(rMod), util::WStrToStr(text), color, color.a, (SDK::ui::TextAlignment)alignment, SDK::TextMeasureData((size * guiScale) / this->font->getLineHeight(), Latite::get().shouldRenderTextShadows(), false), caretMeasure);
+	renderCtx->drawText(this->font, getRect(rMod), util::WStrToStr(text), color, color.a, (SDK::ui::TextAlignment)alignment, SDK::TextMeasureData((size * guiScale) / this->font->getLineHeight(), Omoti::get().shouldRenderTextShadows(), false), caretMeasure);
 }
 
 Vec2 MCDrawUtil::getTextSize(std::wstring const& text, Renderer::FontSelection font, float size, bool trailingWhitespace, bool cache, std::optional<Vec2> bounds) {

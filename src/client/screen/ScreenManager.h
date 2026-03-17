@@ -1,6 +1,5 @@
 #pragma once
 #include "screens/ClickGUI.h"
-#include "screens/HUDEditor.h"
 
 #include "client/manager/StaticManager.h"
 #include "client/event/Listener.h"
@@ -8,10 +7,10 @@
 
 #include "util/Util.h"
 #include "script/JsScreen.h"
+#include <array>
 
 class ScreenManager : public Listener, public StaticManager<Screen,
-	ClickGUI,
-	HUDEditor> {
+	ClickGUI> {
 public:
 	ScreenManager();
 
@@ -70,4 +69,5 @@ public:
 	void onFocusLost(FocusLostEvent& ev);
 private:
 	std::optional<std::reference_wrapper<Screen>> activeScreen;
+	std::array<bool, 256> toggleKeysHeld = {};
 };

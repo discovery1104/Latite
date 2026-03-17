@@ -208,7 +208,7 @@ JsValueRef JsEntityClass::entitySetVariable(JsValueRef callee, bool isConstructo
 	if (!Chakra::VerifyArgCount(argCount, 3)) return JS_INVALID_REFERENCE;
 	if (!Chakra::VerifyParameters({ { arguments[1], JsString }, {arguments[2], JsNumber}})) return JS_INVALID_REFERENCE;
 
-#ifdef LATITE_DEBUG
+#ifdef Omoti_DEBUG
 	JsEntity* ent = nullptr;
 	JS::JsGetExternalData(arguments[0], reinterpret_cast<void**>(&ent));
 

@@ -32,6 +32,8 @@ protected:
 	void onEnable(bool ignoreAnims) override;
 	void onDisable() override;
 private:
+	void onRenderImpl();
+
 	struct ColorPicker {
 		Setting* setting = nullptr;
 		StoredColor* selectedColor = nullptr;
@@ -58,6 +60,7 @@ private:
 	} colorPicker{};
 
 	TextBox searchTextBox{};
+	TextBox playlistNameTextBox{};
 	std::vector<TextBox> pickerTextBoxes{};
 
 	ComPtr<ID2D1Bitmap1> shadowBitmap;
@@ -114,6 +117,18 @@ private:
 	Setting* activeSetting = nullptr;
 	int capturedKey = 0;
 	float adaptedScale = 0.f;
+
+	enum class QuickPanel {
+		None,
+		Hud,
+		Keys
+	} quickPanel = QuickPanel::None;
+
+	enum class QuickCaptureTarget {
+		None,
+		Menu,
+		Eject
+	} quickCaptureTarget = QuickCaptureTarget::None;
 
 	float scrollMax = 0.f;
 	float scroll = 0.f;

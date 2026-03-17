@@ -2,7 +2,7 @@
 #include "ClientScriptingObject.h"
 #include "util/Util.h"
 #include "util/ChakraUtil.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/script/PluginManager.h"
 #include "client/feature/command/CommandManager.h"
 #include "client/feature/module/ModuleManager.h"
@@ -25,7 +25,7 @@ JsValueRef ClientScriptingObject::registerEventCallback(JsValueRef callee, bool 
 	JS::JsStringToPointer(arguments[1], &myS, &sze);
 	std::wstring wstr(myS);
 
-	for (auto& lis : Latite::getPluginManager().eventListeners) {
+	for (auto& lis : Omoti::getPluginManager().eventListeners) {
 		if (lis.first == wstr) {
 			JsContextRef ct;
 			JS::JsGetCurrentContext(&ct);
@@ -50,7 +50,7 @@ JsValueRef ClientScriptingObject::runCommandCallback(JsValueRef callee, bool isC
 	if (!Chakra::VerifyArgCount(argCount, 2)) return Chakra::GetFalse();
 	if (!Chakra::VerifyParameters({ {arguments[1], JsString} })) return JS_INVALID_REFERENCE;
 	auto s = Chakra::GetString(arguments[1]);
-	return Latite::getCommandManager().runCommand(Latite::getCommandManager().prefix + util::WStrToStr(s)) ? Chakra::GetTrue() : Chakra::GetFalse();
+	return Omoti::getCommandManager().runCommand(Omoti::getCommandManager().prefix + util::WStrToStr(s)) ? Chakra::GetTrue() : Chakra::GetFalse();
 }
 
 JsValueRef ClientScriptingObject::showNotifCallback(JsValueRef callee, bool isConstructor, JsValueRef* arguments, unsigned short argCount, void* callbackState)
@@ -60,7 +60,7 @@ JsValueRef ClientScriptingObject::showNotifCallback(JsValueRef callee, bool isCo
 	if (!Chakra::VerifyArgCount(argCount, 2)) return undefined;
 	if (!Chakra::VerifyParameters({ {arguments[1], JsString} })) return undefined;
 
-	Latite::getNotifications().push(JsScript::getThis()->getPlugin()->getName() + L": " + Chakra::GetString(arguments[1]));
+	Omoti::getNotifications().push(JsScript::getThis()->getPlugin()->getName() + L": " + Chakra::GetString(arguments[1]));
 	return undefined;
 }
 
@@ -105,7 +105,7 @@ void ClientScriptingObject::initScreenManager() {
 }
 
 void ClientScriptingObject::initialize(JsContextRef ctx, JsValueRef parentObj) {
-#if LATITE_DEBUG
+#if Omoti_DEBUG
 	Chakra::DefineFunc(object, testCallback, L"test", this);
 #endif
 
@@ -127,7 +127,7 @@ void ClientScriptingObject::initialize(JsContextRef ctx, JsValueRef parentObj) {
 	Chakra::DefineFunc(commandManager, cmgrGetPrefixCallback, XW("getPrefix"));
 	Chakra::DefineFunc(commandManager, smgrRegisterScreenCallback, XW("registerScreen"));
 
-	Chakra::SetPropertyString(object, L"version", util::StrToWStr(std::string(Latite::version.data(), Latite::version.size())));
+	Chakra::SetPropertyString(object, L"version", util::StrToWStr(std::string(Omoti::version.data(), Omoti::version.size())));
 }
 
 
@@ -152,9 +152,9 @@ JsValueRef ClientScriptingObject::mmgrRegisterModuleCallback(JsValueRef callee, 
 		return undefined;
 	}
 
-	if (Latite::getModuleManager().registerScriptModule(mod)) {
+	if (Omoti::getModuleManager().registerScriptModule(mod)) {
 		JsScript::getThis()->addResource(mod, [](void* obj) {
-			if (!Latite::getModuleManager().deregisterScriptModule(reinterpret_cast<JsModule*>(obj))) {
+			if (!Omoti::getModuleManager().deregisterScriptModule(reinterpret_cast<JsModule*>(obj))) {
 				Logger::Warn("Module is already deregistered");
 			}
 
@@ -188,7 +188,7 @@ JsValueRef ClientScriptingObject::mmgrDeregisterModuleCallback(JsValueRef callee
 		return undefined;
 	}
 
-	//Latite::getModuleManager().deregisterScriptModule(mod);
+	//Omoti::getModuleManager().deregisterScriptModule(mod);
 	JsScript::getThis()->removeResource(mod); // this should deregister it I think
 
 	return undefined;
@@ -211,7 +211,7 @@ JsValueRef ClientScriptingObject::mmgrGetModuleByName(JsValueRef callee, bool is
 	std::string str = util::WStrToStr(Chakra::GetString(arguments[1]));
 
 	auto thi = reinterpret_cast<ClientScriptingObject*>(callbackState);
-	auto mod = Latite::getModuleManager().find(str);
+	auto mod = Omoti::getModuleManager().find(str);
 
 	JsContextRef ctx;
 	JS::JsGetCurrentContext(&ctx);
@@ -262,7 +262,7 @@ JsValueRef ClientScriptingObject::mmgrForEachModule(JsValueRef callee, bool isCo
 		return JS_INVALID_REFERENCE;
 	}
 
-	Latite::getModuleManager().forEach([&](std::shared_ptr<Module> modul) {
+	Omoti::getModuleManager().forEach([&](std::shared_ptr<Module> modul) {
 		JsValueRef jsMod = JS_INVALID_REFERENCE;
 
 		if (modul->isTextual()) {
@@ -280,7 +280,7 @@ JsValueRef ClientScriptingObject::mmgrForEachModule(JsValueRef callee, bool isCo
 
 		JsValueRef r[2] = { arguments[0], jsMod };
 		JsValueRef res;
-		Latite::getPluginManager().handleErrors(Chakra::CallFunction(arguments[1], r, 2, &res));
+		Omoti::getPluginManager().handleErrors(Chakra::CallFunction(arguments[1], r, 2, &res));
 		Chakra::Release(res);
 		Chakra::Release(r[1]);
 		return false;
@@ -310,9 +310,9 @@ JsValueRef ClientScriptingObject::cmgrRegisterCommandCallback(JsValueRef callee,
 		return undefined;
 	}
 
-	if (Latite::getCommandManager().registerScriptCommand(cmd)) {
+	if (Omoti::getCommandManager().registerScriptCommand(cmd)) {
 		JsScript::getThis()->addResource(cmd, [](void* obj) {
-			if (!Latite::getCommandManager().deregisterScriptCommand(reinterpret_cast<JsCommand*>(obj))) {
+			if (!Omoti::getCommandManager().deregisterScriptCommand(reinterpret_cast<JsCommand*>(obj))) {
 				Logger::Warn("Script command is already deregistered");
 			}
 
@@ -341,14 +341,14 @@ JsValueRef ClientScriptingObject::cmgrDeregisterCommandCallback(JsValueRef calle
 
 	JS::JsGetExternalData(arguments[1], reinterpret_cast<void**>(&cmd));
 
-	//Latite::getCommandManager().deregisterScriptCommand(cmd);
+	//Omoti::getCommandManager().deregisterScriptCommand(cmd);
 	JsScript::getThis()->removeResource(cmd);
 
 	return undefined;
 }
 
 JsValueRef ClientScriptingObject::cmgrGetPrefixCallback(JsValueRef callee, bool isConstructor, JsValueRef* arguments, unsigned short argCount, void* callbackState){
-	return Chakra::MakeString(util::StrToWStr(Latite::getCommandManager().prefix));
+	return Chakra::MakeString(util::StrToWStr(Omoti::getCommandManager().prefix));
 }
 
 JsValueRef ClientScriptingObject::smgrRegisterScreenCallback(JsValueRef callee, bool isConstructor, JsValueRef* arguments, unsigned short argCount, void* callbackState) {
@@ -372,9 +372,9 @@ JsValueRef ClientScriptingObject::smgrRegisterScreenCallback(JsValueRef callee, 
 		return undefined;
 	}
 
-	if (Latite::getScreenManager().registerScriptScreen(scn)) {
+	if (Omoti::getScreenManager().registerScriptScreen(scn)) {
 		JsScript::getThis()->addResource(scn, [](void* obj) {
-			if (!Latite::getScreenManager().deregisterScriptScreen(reinterpret_cast<JsScreen*>(obj))) {
+			if (!Omoti::getScreenManager().deregisterScriptScreen(reinterpret_cast<JsScreen*>(obj))) {
 				Logger::Warn("Screen is already deregistered");
 			}
 			});

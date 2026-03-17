@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "ChakraUtil.h"
 #include "Util.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "Logger.h"
 #include <filesystem>
 
@@ -22,21 +22,21 @@ FARPROC Chakra::pass(const char* name)
 	if (!mod) {
 		mod = GetModuleHandleA("Chakra.dll");
 
-		// https://raw.githubusercontent.com/Imrglop/Latite-Releases/main/bin/ChakraCore.dll
+		// https://raw.githubusercontent.com/Imrglop/Omoti-Releases/main/bin/ChakraCore.dll
 
 		//mod = LoadLibraryW(L"C:\\Windows\\system32\\Chakra.dll");
 		// sadly going to have to cope with chakra and not chakracore
 
-		auto latitePath = util::GetLatitePath();
-		std::filesystem::create_directory(latitePath);
-		auto assetsPath = latitePath / "Assets";
-		std::filesystem::create_directory(latitePath / "Assets");
+		auto OmotiPath = util::GetOmotiPath();
+		std::filesystem::create_directory(OmotiPath);
+		auto assetsPath = OmotiPath / "Assets";
+		std::filesystem::create_directory(OmotiPath / "Assets");
 
 		if (!mod) {
 			if (!std::filesystem::exists(assetsPath / "ChakraCore.dll")) {
-				Latite::get().downloadChakraCore();
+				Omoti::get().downloadChakraCore();
 			}
-			mod = LoadLibraryW((util::GetLatitePath() / "Assets" / "ChakraCore.dll").wstring().c_str());
+			mod = LoadLibraryW((util::GetOmotiPath() / "Assets" / "ChakraCore.dll").wstring().c_str());
 		}
 	}
 	if (!mod) {
@@ -46,7 +46,7 @@ FARPROC Chakra::pass(const char* name)
 }
 
 void Chakra::SetContext(JsContextRef context) {
-	if (!Latite::isMainThread()) {
+	if (!Omoti::isMainThread()) {
 		Logger::Fatal("{}", XOR_STRING("SetContext accessed outside of the main thread!!!"));
 		__debugbreak();
 	}

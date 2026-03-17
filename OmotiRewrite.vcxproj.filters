@@ -86,7 +86,7 @@
     <ClCompile Include="src\client\hook\impl\RenderControllerHooks.cpp" />
     <ClCompile Include="src\client\hook\impl\ScreenViewHooks.cpp" />
     <ClCompile Include="src\client\input\Keyboard.cpp" />
-    <ClCompile Include="src\client\Latite.cpp" />
+    <ClCompile Include="src\client\Omoti.cpp" />
     <ClCompile Include="src\client\localization\LocalizeData.cpp" />
     <ClCompile Include="src\client\localization\LocalizeString.cpp" />
     <ClCompile Include="src\client\misc\ClientMessageQueue.cpp" />
@@ -189,7 +189,7 @@
     <ClInclude Include="src\client\event\impl\FogColorEvent.h" />
     <ClInclude Include="src\client\event\impl\GetTimeEvent.h" />
     <ClInclude Include="src\client\event\impl\BobHurtEvent.h" />
-    <ClInclude Include="src\client\event\impl\LatiteClientMessageEvent.h" />
+    <ClInclude Include="src\client\event\impl\OmotiClientMessageEvent.h" />
     <ClInclude Include="src\client\event\impl\OutlineSelectionEvent.h" />
     <ClInclude Include="src\client\event\impl\PacketReceiveEvent.h" />
     <ClInclude Include="src\client\event\impl\SendPacketEvent.h" />
@@ -329,7 +329,7 @@
     <ClInclude Include="src\client\hook\impl\RenderControllerHooks.h" />
     <ClInclude Include="src\client\hook\impl\ScreenViewHooks.h" />
     <ClInclude Include="src\client\input\Keyboard.h" />
-    <ClInclude Include="src\client\Latite.h" />
+    <ClInclude Include="src\client\Omoti.h" />
     <ClInclude Include="src\client\localization\LocalizeData.h" />
     <ClInclude Include="src\client\localization\LocalizeString.h" />
     <ClInclude Include="src\client\misc\ClientMessageQueue.h" />
@@ -494,7 +494,7 @@
     <ClInclude Include="src\sdk\common\client\game\Option.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LatiteRewrite.rc" />
+    <ResourceCompile Include="OmotiRewrite.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\arrow.png" />
@@ -514,7 +514,7 @@
     <None Include="assets\lang\pt_BR.json" />
     <None Include="CMakePresets.json" />
     <None Include="CppProperties.json" />
-    <None Include="src\client\script\js\latiteapi.js" />
+    <None Include="src\client\script\js\Omotiapi.js" />
     <None Include="assets\lang\nl_NL.json" />
   </ItemGroup>
   <ItemGroup>

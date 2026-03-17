@@ -4,7 +4,7 @@
 #include "mc/common/world/Minecraft.h"
 #include "mc/common/client/renderer/game/LevelRendererPlayer.h"
 #include "mc/common/client/renderer/game/LevelRenderer.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/render/Renderer.h"
 
 #ifdef min
@@ -150,8 +150,8 @@ std::filesystem::path util::GetRoamingPath() {
     return std::wstring();
 }
 
-std::filesystem::path util::GetLatitePath() {
-    return GetRoamingPath()/"Latite";
+std::filesystem::path util::GetOmotiPath() {
+    return GetRoamingPath()/"Omoti";
 }
 
 std::wstring util::StrToWStr(std::string const& s) {
@@ -338,7 +338,7 @@ void util::PlaySoundUI(std::string const& sound, float volume, float pitch) {
 
 Color util::LerpColorState(Color const& current, Color const& on, Color const& off, bool state, float speed) {
     Color ret = current;
-    float t = Latite::getRenderer().getDeltaTime()* (speed / 10.f);
+    float t = Omoti::getRenderer().getDeltaTime()* (speed / 10.f);
     ret.r = std::lerp(current.r, state ? on.r : off.r, t);
     ret.g = std::lerp(current.g, state ? on.g : off.g, t);
     ret.b = std::lerp(current.b, state ? on.b : off.b, t);

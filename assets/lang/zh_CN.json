@@ -1,7 +1,7 @@
 {
   "name": "中文 (简体)",
   "translations": {
-    "client.intro.welcome": "欢迎使用 Latite 客户端！",
+    "client.intro.welcome": "欢迎使用 Omoti 客户端！",
     "client.intro.menubutton": "在世界或服务器中按 {} 打开模组菜单。",
     "client.settings.menuKey.name": "菜单键",
     "client.settings.ejectKey.name": "卸载键",
@@ -34,7 +34,7 @@
     "client.settings.centerCursor.desc": "打开菜单时光标将居中。",
     "client.settings.snapLines.desc": "对齐模块的对齐线",
     "client.settings.detectLanguage.name": "语言检测",
-    "client.settings.detectLanguage.desc": "根据系统语言自动切换 Latite 客户端的语言。",
+    "client.settings.detectLanguage.desc": "根据系统语言自动切换 Omoti 客户端的语言。",
     "client.settings.mcRendererFont.default.name": "默认",
     "client.settings.mcRendererFont.notoSans.name": "Noto Sans",
     "client.settings.mcRendererFont.default.desc": "默认 UI 字体（默认情况下为 Mojangles）",
@@ -431,7 +431,7 @@
     "client.module.autoGG.customMessage.desc": "要发送的自定义消息",
     "client.commands.help.desc": "显示所有命令和描述。",
     "client.commands.eject.ejectMsg.name": "客户端已卸载。",
-    "client.commands.eject.desc": "将 Latite 从游戏中移除。",
+    "client.commands.eject.desc": "将 Omoti 从游戏中移除。",
     "client.commands.setPrefix.success.name": "命令前缀已设置为 &7'{}'",
     "client.commands.setPrefix.desc": "设置命令前缀",
     "client.commands.toggle.msg.unknownModule.name": "未知模块 {}",

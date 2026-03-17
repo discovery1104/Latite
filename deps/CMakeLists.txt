@@ -6,11 +6,15 @@ CPMAddPackage("gh:brampedgex/mnemosyne#48078d302fa3ba9e22b80ca69eadf27811caf361"
 CPMAddPackage("gh:nlohmann/json@3.12.0")
 CPMAddPackage("gh:BasedInc/libhat@0.6.0")
 
-target_include_directories(Latite PRIVATE
+if (TARGET libhat)
+	target_compile_options(libhat PRIVATE /WX-)
+endif()
+
+target_include_directories(Omoti PRIVATE
 	"include"
 )
 
-target_link_libraries(Latite PRIVATE
+target_link_libraries(Omoti PRIVATE
 	minhook
 	glm::glm
 	mnemosyne

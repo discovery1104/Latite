@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "TestModule.h"
-#include "client/Latite.h"
+#include "client/Omoti.h"
 #include "client/event/Eventing.h"
 #include "client/event/events/RenderOverlayEvent.h"
 #include "client/event/events/RenderGameEvent.h"
@@ -43,14 +43,14 @@ void TestModule::render(DrawUtil& ctx, bool isDefault, bool inEditor) {
 	if (ctx.isMinecraft()) return;
 
 	{
-		auto dc = Latite::getRenderer().getDeviceContext();
+		auto dc = Omoti::getRenderer().getDeviceContext();
 
 		ComPtr<ID2D1GradientStopCollection> gradientStopCollection;
 
 		auto& col = std::get<ColorValue>(colorSetting);
 
 		D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES prop{};
-		auto ss = Latite::getRenderer().getScreenSize();
+		auto ss = Omoti::getRenderer().getScreenSize();
 
 		shift += SDK::ClientInstance::get()->minecraft->timer->alpha * 0.005f;
 

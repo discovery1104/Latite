@@ -54,7 +54,7 @@ public:
 	static JsValueRef CALLBACK getCallback(JsValueRef callee, bool isConstructor,
 		JsValueRef* arguments, unsigned short argCount, void* callbackState) {
 
-#ifndef LATITE_DEBUG
+#ifndef Omoti_DEBUG
 		Chakra::ThrowError(L"For security, NativeModule is disabled in release builds");
 		return JS_INVALID_REFERENCE;
 #endif
@@ -72,7 +72,7 @@ public:
 
 		static std::array<HMODULE, 2> banList = {
 			GetModuleHandleA(NULL),
-			Latite::get().dllInst,
+			Omoti::get().dllInst,
 		};
 
 		auto handle = GetModuleHandleW(name.c_str());
@@ -89,7 +89,7 @@ public:
 	static JsValueRef CALLBACK callCallback(JsValueRef callee, bool isConstructor,
 		JsValueRef* arguments, unsigned short argCount, void* callbackState) {
 
-#ifndef LATITE_DEBUG
+#ifndef Omoti_DEBUG
 		Chakra::ThrowError(L"For security, NativeModule is disabled in release builds");
 		return JS_INVALID_REFERENCE;
 #endif
